@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from elevator_simulation.models.building import Floor
 
 def nearest_elevator(ctrl, floor, direction):
     """A dispatch strategy for determining the elevator to dispatch to a caller
@@ -35,12 +36,12 @@ class ElevatorController(object):
         use the nearest elevator strategy.
         """
         self.__elevators = set()
-        self.__levels = [] if not floors else floors
+        self.__floors = tuple([] if not floors else floors)
         self.__dispatch_strategy = None
 
     @property
-    def levels(self):
-        return tuple(self.__levels)
+    def floors(self):
+        return self.__floors
 
     @property
     def elevators(self):
@@ -68,7 +69,7 @@ class Elevator(object):
         self.__capacity = capacity
         self.__ctrl = ctrl
         self.__direction = None
-        self.__location = None
+        self.__location = ctrl.floors[0]
         self.__stops = set()
 
     def distance(self, floor):
@@ -84,6 +85,30 @@ class Elevator(object):
         nd = self.distance(self.next_location(), floor)
         return nd > d
 
+    @property
+    def direction(self):
+        return self.__direction
+
+    @direction.setter
+    def direction(self, value):
+        valid_values = (1, -1, 0, None)
+        if value not in valid_values:
+            raise ValueError("Direction must be one of the following values: {}".format(valid_values))
+        self.__direction = value
+
+    @property
+    def location(self):
+        """gets the current location of the elevator"""
+        return self.__location
+
+    @location.setter
+    def location(self, floor):
+        """sets the location of the elevator"""
+        if not isinstance(floor, Floor):
+            raise TypeError("expected param floor to be of type {}".format(Floor.__name__))
+        self.__location = floor
+
+    @property
     def next_location(self):
         """Calculates the next expected location given the current position and direction.
 
@@ -93,8 +118,8 @@ class Elevator(object):
             return self.__location
 
         next_level = self.__location.level + self.__direction
-        next_level = min(max(1, next_level), len(self.__ctrl.levels))  # boundaries check
-        floor = self.__ctrl.levels[next_level - 1]
+        next_level = min(max(1, next_level), len(self.__ctrl.floors))  # boundaries check
+        floor = self.__ctrl.floors[next_level - 1]
         return floor
 
     def add_stop(self, floor, direction):

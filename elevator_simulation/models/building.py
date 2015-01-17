@@ -12,7 +12,10 @@ class Floor(object):
 
     @property
     def level(self):
-        return self.__level
+        return self._level
+
+    def __repr__(self):
+        return "<Floor(level={})>".format(self.level)
 
 
 class Building(object):
