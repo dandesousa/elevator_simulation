@@ -74,16 +74,14 @@ class Elevator(object):
 
     def distance(self, floor):
         """computes the distance between an elevator and the floor"""
-        return abs(self.__location.level - floor.level)
+        return self.location.distance(floor)
 
     def moving_away(self, floor):
         """determines if the elevator in its current position and direction is moving away from the floor
 
         :param floor Floor: the floor to test if the elevator is moving away from.
         """
-        d = self.distance(self.__location, floor)
-        nd = self.distance(self.next_location(), floor)
-        return nd > d
+        return self.next_location.distance(floor) > self.location.distance(floor)
 
     @property
     def direction(self):
@@ -114,10 +112,10 @@ class Elevator(object):
 
         :rtype Floor: the next location where the elevator will be when it completes its next step.
         """
-        if not self.__direction or not self.__location:
-            return self.__location
+        if not self.direction or not self.location:
+            return self.location
 
-        next_level = self.__location.level + self.__direction
+        next_level = self.location.level + self.direction
         next_level = min(max(1, next_level), len(self.__ctrl.floors))  # boundaries check
         floor = self.__ctrl.floors[next_level - 1]
         return floor

@@ -61,6 +61,20 @@ class TestElevator(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.elevator.direction = 2
 
+    def test_moving_away(self):
+        """tests that we can properly determine if we are moving away"""
+        for floor in self.ctrl.floors:
+            self.assertFalse(self.elevator.moving_away(floor))
+        self.elevator.direction = 1
+
+        floors = []
+        while self.elevator.location != self.ctrl.floors[-1]:
+            for floor in floors:
+                self.assertTrue(self.elevator.moving_away(floor))
+            floors.append(self.elevator.location)
+            self.elevator.location = self.elevator.next_location
+
+
     def test_next_location(self):
         self.assertEqual(self.ctrl.floors[0], self.elevator.location)
         self.assertEqual(self.elevator.location, self.elevator.next_location)

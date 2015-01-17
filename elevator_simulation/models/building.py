@@ -14,6 +14,10 @@ class Floor(object):
     def level(self):
         return self._level
 
+    def distance(self, fl):
+        """computes the distance between two floors based on the level"""
+        return abs(self.level - fl.level)
+
     def __repr__(self):
         return "<Floor(level={})>".format(self.level)
 
