@@ -3,12 +3,16 @@
 
 
 class Floor(object):
-    def __init__(self, name=None):
-        self.__name = name
+    def __init__(self, level=None):
+        self._level = level
         self.__elevator_lobby = None
         self.__office_space = None
         self.__stair_well = None
         self.__lunch_room = None
+
+    @property
+    def level(self):
+        return self.__level
 
 
 class Building(object):
@@ -35,3 +39,4 @@ class Building(object):
             raise TypeError("Expected param floor to be of type {}".format(Floor.__name__))
 
         self.__floors.append(floor)
+        floor._level = len(self.__floors)

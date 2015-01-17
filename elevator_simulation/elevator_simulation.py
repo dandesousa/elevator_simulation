@@ -26,6 +26,10 @@ def get_args():
 
 
 def main():
+    """Main simulation loop.
+
+    Each tick represents a second in 'real' time of the schedule.
+    """
     args = get_args()
 
     import simpy
@@ -39,6 +43,7 @@ def main():
     env.process(clock(env, 'fast', 0.5))
     env.process(clock(env, 'slow', 1.0))
     env.run(until=2)
+
 
 
 if __name__ == '__main__':
