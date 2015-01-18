@@ -14,6 +14,10 @@ class Floor(object):
     def level(self):
         return self._level
 
+    def direction(self, fl):
+        """the direction you must travel to from this floor to the passed floor"""
+        return (fl.level - self.level) / self.distance(fl)
+
     def distance(self, fl):
         """computes the distance between two floors based on the level"""
         return abs(self.level - fl.level)

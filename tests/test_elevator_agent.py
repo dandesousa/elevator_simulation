@@ -23,6 +23,8 @@ class TestElevatorAgent(unittest.TestCase):
     def tearDown(self):
         pass
 
+    # TODO: add a test for stopping at each floor
+
     def test_add_elevator_stop_top(self):
         travel_time = self.agent.elevator_travel_secs
         total_run_time = travel_time * (len(self.ctrl.floors)) + self.agent.elevator_open_secs

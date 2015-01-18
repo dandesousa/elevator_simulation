@@ -31,7 +31,8 @@ class ElevatorConrollerAgent(object):
         """defines the behavior of the elevator controller in the simulation"""
         while True:
             # wait to take an action until the elevator is called
-            yield self.elevator_called
+            #yield self.elevator_called
+            yield self.env.timeout(100)
 
     def call(self, floor, direction):
         """calls an elevator in this elevator bank.
@@ -39,8 +40,10 @@ class ElevatorConrollerAgent(object):
         :param floor Floor: the floor it was called from
         :param direction int: the direction it was called for
         """
-        self.model.call_elevator(floor, direction)
-        self.elevator_called.succeed()
+        elevator = self.model.call_elevator(floor, direction)
+        agent = [agent for agent in self.elevator_agents if agent.model == elevator][0]
+        agent.add_stop(floor)
+        #self.elevator_called.succeed()
 
 
 class ElevatorAgent(object):
@@ -131,7 +134,7 @@ class ElevatorAgent(object):
     def arrived_at_floor_event(self):
         return self.__arrived_at_floor
 
-    def add_stop(self, floor):
+    def add_stop(self, floor, add=True):
         """adds a new stop to the elevator and signals that it should start moving."""
         self.model.add_stop(floor)
         self.__new_stop_added.succeed()

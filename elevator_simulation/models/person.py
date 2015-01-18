@@ -26,6 +26,13 @@ class Schedule(object):
     def __init__(self):
         self.__events = []
 
+    def next_event(self, now):
+        """tells us the next event starting from the given time."""
+        for event in self.events:
+            if now < event.start_time:
+                return event
+        return None
+
     @property
     def events(self):
         """Returns a tuple of events in this schedule."""

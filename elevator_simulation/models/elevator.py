@@ -73,10 +73,10 @@ class ElevatorController(object):
 
         :param floor Floor: the floor the elevator should be sent to
         :param direction Direction: the direction the elevator caller wants to travel
+
         """
         elevator = self.__dispatch_strategy(self, floor, direction)
-        # dispatch the elevator to get the user
-        elevator.add_stop(floor, direction)
+        return elevator
 
 
 class Elevator(object):
