@@ -54,9 +54,22 @@ class Schedule(object):
 class Person(object):
     """Class to model a person with a work schedule.
     """
-    def __init__(self):
+    def __init__(self, **kwargs):
+        """Creates a person with preferences and attributes.
+
+        :param fitness int: combination measure of fitness and willingness to take the stairs (def: 1)
+        """
         self.__schedule = Schedule()
         self.__location = None
+        self.__fitness = kwargs.get("fitness", 1)
+
+    @property
+    def max_stair_levels_down(self):
+        return self.__fitness
+
+    @property
+    def max_stair_levels_up(self):
+        return max(0, self.__fitness - 1)
 
     @property
     def schedule(self):

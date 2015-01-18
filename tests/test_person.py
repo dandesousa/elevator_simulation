@@ -5,20 +5,24 @@
 import unittest
 from datetime import timedelta
 from elevator_simulation.models.building import Floor
-from elevator_simulation.models.person import Schedule
+from elevator_simulation.models.person import Person, Schedule
 
 
 class TestPerson(unittest.TestCase):
     """Test person behavior and functionality."""
 
     def setUp(self):
-        pass
+        self.person = Person()
 
     def tearDown(self):
         pass
 
-    def test_name(self):
-        pass
+    def test_max_stair_levels(self):
+        self.assertEqual(1, self.person.max_stair_levels_down)
+        self.assertEqual(0, self.person.max_stair_levels_up)
+        self.person = Person(fitness=10)
+        self.assertEqual(10, self.person.max_stair_levels_down)
+        self.assertEqual(9, self.person.max_stair_levels_up)
 
 
 class TestSchedule(unittest.TestCase):
