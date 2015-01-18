@@ -3,8 +3,12 @@
 
 from elevator_simulation.models.building import Floor
 
+
 def nearest_elevator(ctrl, floor, direction):
     """A dispatch strategy for determining the elevator to dispatch to a caller
+
+    Follows the 'Nearest Elevator' algorithm as described in the following presentation:
+        http://www.columbia.edu/~cs2035/courses/ieor4405.S13/p14.pdf
 
     :param ctrl ElevatorController: the elevator controller the request was made at.
     :param floor Floor: the floor the call occurred.
@@ -41,13 +45,19 @@ class ElevatorController(object):
 
     @property
     def floors(self):
+        """Returns a tuple of the floors serviced by the elevator controller"""
         return self.__floors
 
     @property
     def elevators(self):
+        """Returns a tuple of the elevators in the elevator bank"""
         return tuple(self.__elevators)
 
     def add_elevator(self, **kwargs):
+        """Adds an eleavtor to the elevator bank of this controller.
+
+        :param capacity int: the maximum number of people that fit in the elevator
+        """
         elevator = Elevator(kwargs.get("capacity", None), self)
         self.__elevators.add(elevator)
 
@@ -85,10 +95,15 @@ class Elevator(object):
 
     @property
     def direction(self):
+        """Returns the direction the elevator is currently travelling"""
         return self.__direction
 
     @direction.setter
     def direction(self, value):
+        """Property to set the direction.
+
+        :param value int: the value indicating the direction (1 - up, -1 - down, 0 / None - idle)
+        """
         valid_values = (1, -1, 0, None)
         if value not in valid_values:
             raise ValueError("Direction must be one of the following values: {}".format(valid_values))
@@ -122,15 +137,24 @@ class Elevator(object):
 
     @property
     def stops(self):
+        """Returns the floors that the elevator should stop on"""
         return frozenset(self.__stops)
 
     def add_stop(self, floor):
+        """Adds a floor to the list of floors the elevator should stop on
+
+        :param floor Floor: floor to stop on
+        """
         if floor in self.__ctrl.floors:
             self.__stops.add(floor)
         else:
             raise ValueError("Floor does not exist in the list of valid floors for this elevator".format(floor))
 
     def remove_stop(self, floor):
+        """Removes a floor from the list of floors the elevator should stop on
+
+        :param floor Floor: floor to remove stop from
+        """
         if floor in self.__stops:
             self.__stops.remove(floor)
         else:
