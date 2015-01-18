@@ -7,6 +7,7 @@ from datetime import timedelta
 from elevator_simulation.models.building import Floor
 from elevator_simulation.models.person import Schedule
 
+
 class TestPerson(unittest.TestCase):
     """Test person behavior and functionality."""
 
@@ -56,3 +57,17 @@ class TestSchedule(unittest.TestCase):
         self.assertEqual(0, len(self.schedule.events))
         self.schedule.add_event(timedelta(hours=8, minutes=0), self.floor, "Go to work")
         self.assertEqual(1, len(self.schedule.events))
+
+    def test_event_order(self):
+        """tests that regardless of the event add order, the events are always in the right order."""
+        self.schedule.add_event(timedelta(hours=1), self.floor)
+        self.schedule.add_event(timedelta(hours=10), self.floor)
+        self.schedule.add_event(timedelta(hours=5), self.floor)
+        self.schedule.add_event(timedelta(hours=7), self.floor)
+        self.schedule.add_event(timedelta(hours=3), self.floor)
+
+        self.assertEqual(5, len(self.schedule.events))
+        event = self.schedule.events[0]
+        for next_event in self.schedule.events[1:]:
+            self.assertLess(event, next_event)
+            event = next_event
