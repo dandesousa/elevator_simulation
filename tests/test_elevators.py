@@ -51,6 +51,7 @@ class TestElevator(unittest.TestCase):
             self.assertEqual(floor.level - 1, self.elevator.distance(floor))
 
     def test_direction(self):
+        """tests the valid values that are applicable for a direction"""
         self.assertFalse(self.elevator.direction)
 
         valid_values = (1, -1, 0, None)
@@ -76,6 +77,7 @@ class TestElevator(unittest.TestCase):
 
 
     def test_next_location(self):
+        """tests that the next location is selected accurately given a direction and current location"""
         self.assertEqual(self.ctrl.floors[0], self.elevator.location)
         self.assertEqual(self.elevator.location, self.elevator.next_location)
 
