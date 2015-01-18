@@ -23,13 +23,17 @@ class Floor(object):
 
 
 class Building(object):
+    """Class which models the building used in the simulation.
+
+    TODO: adding this here at first but might not matter later
+    """
     def __init__(self):
-        self.__floors = []
+        self.__floors = tuple()
 
     @property
     def floors(self):
         """Gets a tuple of floors"""
-        return tuple(self.__floors)
+        return self.__floors
 
     def add_floor(self, floor):
         """Adds a floor to the building.
@@ -45,5 +49,5 @@ class Building(object):
         if not isinstance(floor, Floor):
             raise TypeError("Expected param floor to be of type {}".format(Floor.__name__))
 
-        self.__floors.append(floor)
+        self.__floors += (floor, )
         floor._level = len(self.__floors)
