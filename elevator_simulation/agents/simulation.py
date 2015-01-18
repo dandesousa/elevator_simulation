@@ -11,8 +11,8 @@ class Simulation(object):
 
     def __init__(self):
         self.__building = BuildingAgent()
-        self.__people = tuple()
-        self.__elevator_banks = tuple()
+        self.__people = []
+        self.__elevator_banks = []
 
     @property
     def building(self):

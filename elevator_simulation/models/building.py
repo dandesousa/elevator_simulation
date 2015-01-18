@@ -5,6 +5,7 @@
 class Floor(object):
     def __init__(self, level=None):
         self._level = level
+        # TODO: remove these totall un-needed properties
         self.__elevator_lobby = None
         self.__office_space = None
         self.__stair_well = None
