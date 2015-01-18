@@ -25,6 +25,7 @@ class TestElevatorAgent(unittest.TestCase):
 
     def test_add_elevator_stop_top(self):
         travel_time = self.agent.elevator_travel_secs
+        total_run_time = travel_time * (len(self.ctrl.floors)) + self.agent.elevator_open_secs
         num_tests = 1
         def test_floor(event):
             nonlocal num_tests
@@ -35,7 +36,7 @@ class TestElevatorAgent(unittest.TestCase):
 
         self.agent.arrived_at_floor_event.callbacks.append(test_floor)
         self.agent.add_stop(self.ctrl.floors[-1])
-        self.env.run(until=travel_time*len(self.ctrl.floors))
-        self.assertEqual(travel_time*len(self.ctrl.floors), self.env.now)
+        self.env.run(until=total_run_time)
+        self.assertEqual(total_run_time, self.env.now)
         self.assertEqual(num_tests, len(self.ctrl.floors))
         self.assertFalse(self.agent.model.stops)

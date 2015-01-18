@@ -98,17 +98,28 @@ class ElevatorAgent(object):
             # move to the next floor
             yield from self.advance_to_next_location()
 
-            # TODO: if this is a stop, then open the doors
             if self.model.location in self.model.stops:
-                # TODO: trigger an elevator arrived event on that floor
-                # TODO: wait
-                # TODO: close doors
-                # TODO: remove the stop
-                self.model.remove_stop(self.model.location)
+                yield from self.open_doors()
+                yield from self.wait_for_passengers()
+                yield from self.close_doors()
 
 
         # become idle, no more stops
         self.model.direction = 0
+
+    def close_doors(self):
+        yield self.env.timeout(self.elevator_close_secs)
+
+    def wait_for_passengers(self):
+        yield self.env.timeout(self.elevator_wait_secs)
+
+    @property
+    def total_elevator_travel_secs(self):
+        return self.elevator_travel_secs + self.elevator_open_secs + self.elevator_close_secs + self.elevator_wait_secs
+
+    def open_doors(self):
+        yield self.env.timeout(self.elevator_open_secs)
+        self.model.remove_stop(self.model.location)
 
     def advance_to_next_location(self):
         yield self.env.timeout(self.elevator_travel_secs)
