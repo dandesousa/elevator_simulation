@@ -120,8 +120,18 @@ class Elevator(object):
         floor = self.__ctrl.floors[next_level - 1]
         return floor
 
-    def add_stop(self, floor, direction):
-        self.__stops.add(floor)
+    @property
+    def stops(self):
+        return frozenset(self.__stops)
 
-    def remove_stop(self, floor, direction):
-        self.__stops.remove(floor)
+    def add_stop(self, floor):
+        if floor in self.__ctrl.floors:
+            self.__stops.add(floor)
+        else:
+            raise ValueError("Floor does not exist in the list of valid floors for this elevator".format(floor))
+
+    def remove_stop(self, floor):
+        if floor in self.__stops:
+            self.__stops.remove(floor)
+        else:
+            raise ValueError("Floor cannot be removed because it is not a stop on the elevator".format(floor))

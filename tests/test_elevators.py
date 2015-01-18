@@ -45,6 +45,21 @@ class TestElevator(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_stops(self):
+        """tests that elevators stops can be added and removed"""
+        self.assertEqual(0, len(self.elevator.stops))
+        self.elevator.add_stop(self.ctrl.floors[2])
+        self.elevator.add_stop(self.ctrl.floors[1])
+        self.assertEqual(2, len(self.elevator.stops))
+        self.elevator.remove_stop(self.ctrl.floors[1])
+        self.assertEqual(1, len(self.elevator.stops))
+
+        with self.assertRaises(ValueError):
+            self.elevator.add_stop(Floor(level=99))
+
+        with self.assertRaises(ValueError):
+            self.elevator.remove_stop(self.ctrl.floors[1])
+
     def test_distance(self):
         """tests that the distance between elevator and various levels is correct"""
         for floor in self.ctrl.floors:
