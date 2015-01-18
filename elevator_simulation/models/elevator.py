@@ -4,7 +4,7 @@
 from elevator_simulation.models.building import Floor
 
 
-def nearest_elevator(ctrl, floor, direction):
+def nearest_elevator_dispatch_strategy(ctrl, floor, direction):
     """A dispatch strategy for determining the elevator to dispatch to a caller
 
     Follows the 'Nearest Elevator' algorithm as described in the following presentation:
@@ -17,12 +17,14 @@ def nearest_elevator(ctrl, floor, direction):
     result = (None, -1)
     for elevator in ctrl.elevators:
 
-        if elevator.moving_away(floor):
+        distance = elevator.distance(floor)
+
+        if elevator.moving_away(floor) and distance:  # suitability shouldn't be low if we are on the same floor
             suitability = 1
         elif elevator.direction == direction or not elevator.direction:  # moving in same or neutral direction
-            suitability = len(ctrl.levels) + 2 - elevator.distance(floor)
+            suitability = len(ctrl.floors) + 2 - distance
         else:
-            suitability = len(ctrl.levels) + 1 - elevator.distance(floor)
+            suitability = len(ctrl.floors) + 1 - distance
 
         best_elevator, best_suitability = result
         if suitability > best_suitability:
@@ -32,7 +34,7 @@ def nearest_elevator(ctrl, floor, direction):
 
 
 class ElevatorController(object):
-    def __init__(self, floors=None, dispatch_strategy=None):
+    def __init__(self, floors=None, dispatch_strategy=nearest_elevator_dispatch_strategy):
         """Constructs an elevator controller with a particular dispatch strategy.
 
         :param dispatch_strategy function: function that selects the elevator that should be dispatched.
@@ -56,10 +58,13 @@ class ElevatorController(object):
     def add_elevator(self, **kwargs):
         """Adds an eleavtor to the elevator bank of this controller.
 
-        :param capacity int: the maximum number of people that fit in the elevator
+        See Elevator.__init__ for parameters
+
+        :rtype Elevator: Returns the elevator that was created
         """
-        elevator = Elevator(kwargs.get("capacity", None), self)
+        elevator = Elevator(self, **kwargs)
         self.__elevators.add(elevator)
+        return elevator
 
     def call_elevator(self, floor, direction):
         """Asks to dispatch an elevator to the requested floor.
@@ -75,12 +80,23 @@ class ElevatorController(object):
 
 
 class Elevator(object):
-    def __init__(self, capacity, ctrl):
-        self.__capacity = capacity
+    def __init__(self, ctrl, **kwargs):
+        """Creates an elevator with the given settings.
+
+        :param ctrl ElevatorController: Reference to the controller that owns the elevator
+        :param capacity int: the maximum number of people allowed on this elevator (def: 10)
+        :param starting_location floor: the initial starting location for this elevator (def: 1st floor)
+        """
         self.__ctrl = ctrl
-        self.__direction = None
-        self.__location = ctrl.floors[0]
         self.__stops = set()
+        self.__capacity = kwargs.get("capacity", 10)
+        self.direction = None
+        self.location = kwargs.get("starting_location", ctrl.floors[0])
+
+    @property
+    def capacity(self):
+        """the maximum number of people allowed on this elevator."""
+        return self.__capacity
 
     def distance(self, floor):
         """computes the distance between an elevator and the floor"""
@@ -159,3 +175,6 @@ class Elevator(object):
             self.__stops.remove(floor)
         else:
             raise ValueError("Floor cannot be removed because it is not a stop on the elevator".format(floor))
+
+    def __repr__(self):
+        return "<Elevator(location={}, direction={}>".format(self.location, self.direction)
