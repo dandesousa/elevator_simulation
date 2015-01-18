@@ -17,7 +17,20 @@ class TestPerson(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_location(self):
+        """tests that location setting works properly"""
+        floor1 = Floor(level=1)
+        floor2 = Floor(level=2)
+        self.assertEqual(None, self.person.location)
+        self.person.location = floor1
+        self.assertEqual(floor1, self.person.location)
+        self.person.location = floor2
+        self.assertEqual(floor2, self.person.location)
+        with self.assertRaises(TypeError):
+            self.person.location = 2
+
     def test_max_stair_levels(self):
+        """tests that stair level calculation is correct."""
         self.assertEqual(1, self.person.max_stair_levels_down)
         self.assertEqual(0, self.person.max_stair_levels_up)
         self.person = Person(fitness=10)

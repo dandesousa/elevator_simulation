@@ -65,21 +65,27 @@ class Person(object):
 
     @property
     def max_stair_levels_down(self):
+        """the maximum number of levels the individual is willing to travel down stairs"""
         return self.__fitness
 
     @property
     def max_stair_levels_up(self):
+        """the maximum number of levels the individual is willing to travel up stairs"""
         return max(0, self.__fitness - 1)
 
     @property
     def schedule(self):
+        """the individuals daily schedule"""
         return self.__schedule
 
     @property
     def location(self):
+        """the location the individual is currently positioned"""
         return self.__location
 
     @location.setter
     def location(self, value):
-        # TODO: set location type, like None or Floor
+        """sets the locations of the individual."""
+        if not isinstance(value, Floor):
+            raise TypeError("Expected location to be of type {}".format(Floor.__name__))
         self.__location = value
