@@ -25,6 +25,9 @@ class Simulation(object):
         self.__elevator_bank_models = elevator_banks
         self.__elevator_bank_agents = [ElevatorControllerAgent(self, elevator_bank) for elevator_bank in elevator_banks]
 
+    def run(self):
+        self.env.run(until=24*3600)
+
     @property
     def building_agent(self):
         return self.__building_agent

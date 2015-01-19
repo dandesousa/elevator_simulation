@@ -17,7 +17,7 @@ def call_strategy_random(elevator_banks):
 
 
 def default_trip_complete(trip):
-    print trip
+    print(trip)
 
 class ElevatorTrip(object):
     __slots__ = ("elevator_called_secs", "elevator_arrived_secs", "travel_secs", "person",
@@ -52,7 +52,7 @@ class PersonAgent(object):
         self.env = sim.env
         self.model = model
         self.action = self.env.process(self.run())
-        self.call_strategy = kwargs("elevator_call_strategy", call_strategy_random)
+        self.call_strategy = kwargs.get("elevator_call_strategy", call_strategy_random)
         self.trip_complete = kwargs.get("trip_complete", default_trip_complete)
 
     def run(self):
