@@ -1,0 +1,26 @@
+{
+    "building": {
+        "floors": 4
+    },
+
+    "elevator_banks": [
+        {
+            "strategy": "nearest_elevator",
+            "elevators": [ 
+                { "capacity": 10 },
+                { "capacity": 10 }
+            ]
+        }
+    ],
+
+    "people": [
+        {
+            "name": 1,
+            "schedule": [
+                { "start": 28800, "level": 2, "description": "work" },
+                { "start": 43200, "level": 3, "description": "lunch" },
+                { "start": 61200, "level": 1, "description": "home" }
+            ]
+        }
+    ]
+}

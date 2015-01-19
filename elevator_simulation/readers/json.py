@@ -17,11 +17,8 @@ def read_simulation(filename):
     :returns: TODO
     """
     simulation = None
-    with open(filename, "rb") as f:
+    with open(filename, "r", encoding="utf-8") as f:
         data = json.load(f)
-
-        # construct the simulation
-        simulation = Simulation()
 
         # create the buidling according to specifications
         if "building" not in data:
@@ -40,7 +37,7 @@ def read_simulation(filename):
         elevator_banks = []
         for elevator_bank in elevator_data:
             ctrl = ElevatorController(building.floors)  # TODO: read the strategy optionally?
-            elevator_arg_list = elevator_data["elevators"]
+            elevator_arg_list = elevator_bank["elevators"]
             for elevator_args in elevator_arg_list:
                 ctrl.add_elevator(**elevator_args)
             elevator_banks.append(ctrl)
@@ -53,14 +50,12 @@ def read_simulation(filename):
             schedule_data = person_data["schedule"]
             for event_data in schedule_data:
                 start_time = timedelta(seconds=event_data["start"])
-                location = building.floors[event_data["location"]]
+                location = building.floors[event_data["level"]]
                 description = event_data.get("description", "unknown")
                 person.schedule.add_event(start_time, location, description)
             people.append(person)
 
 
-        # TODO: combine the models in the simulation
-        # TODO: update all the agents so that they are constructed from their
-        # models, instead of trying to own their own models.
+        simulation = Simulation(building, people, elevator_banks)
 
     return simulation
