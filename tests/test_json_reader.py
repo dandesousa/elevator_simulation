@@ -53,5 +53,4 @@ class TestJSONReader(unittest.TestCase):
                 event = person_agent.model.schedule.events[j]
                 self.assertEqual(event_data["start"], event.start_time.total_seconds())
                 self.assertEqual(event_data["level"], event.location.level)
-
             i += 1
