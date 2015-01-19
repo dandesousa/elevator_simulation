@@ -5,11 +5,11 @@ import simpy
 from elevator_simulation.models.elevator import ElevatorController
 
 
-class ElevatorConrollerAgent(object):
+class ElevatorControllerAgent(object):
 
     """Docstring for ElevatorControllerAgent. """
 
-    def __init__(self, env, **kwargs):
+    def __init__(self, sim, model, **kwargs):
         """Constructs an elevator controller agent for simpy.
 
         The elevator controller agent has information about how the elevator controller operates in the simulation.
@@ -18,14 +18,13 @@ class ElevatorConrollerAgent(object):
         move.
 
         """
-        self.env = env
+        self.env = sim.env
 
         self.elevator_called = self.env.event()
-        self.model = ElevatorController()
-        # TODO: construct the model
+        self.model = model
 
-        self.action = env.process(self.run())
-        self.elevator_agents = [ElevatorAgent(env, elevator) for elevator in self.model.elevators]
+        self.action = self.env.process(self.run())
+        self.elevator_agents = [ElevatorAgent(sim, elevator) for elevator in self.model.elevators]
 
     def run(self):
         """defines the behavior of the elevator controller in the simulation"""
@@ -48,7 +47,7 @@ class ElevatorConrollerAgent(object):
 
 class ElevatorAgent(object):
     """agent for an elevator"""
-    def __init__(self, env, elevator, **kwargs):
+    def __init__(self, sim, model, **kwargs):
         """Constructs an elevator agent for simpy
 
         :param elevator_open_secs int: seconds it takes to open the elevator doors.
@@ -56,13 +55,13 @@ class ElevatorAgent(object):
         :param elevator_wait_secs int: seconds between the elevator doors opening and closing.
         :param elevator_travel_secs int: number of seconds to move between two levels in the building.
         """
-        self.env = env
-        self.model = elevator
-        self.action = env.process(self.run())
+        self.env = sim.env
+        self.model = model
+        self.action = self.env.process(self.run())
 
         # events in this simulation
-        self.__new_stop_added = env.event()
-        self.__arrived_at_floor = env.event()
+        self.__new_stop_added = self.env.event()
+        self.__arrived_at_floor = self.env.event()
 
         self.elevator_open_secs = kwargs.get("elevator_open_secs", 5)
         self.elevator_close_secs = kwargs.get("elevator_close_secs", 5)

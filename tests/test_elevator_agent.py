@@ -3,22 +3,25 @@
 
 import simpy
 import unittest
-from elevator_simulation.models.building import Floor
+from elevator_simulation.models.building import Building
 from elevator_simulation.models.elevator import ElevatorController
 from elevator_simulation.agents.elevator import ElevatorAgent
+from elevator_simulation.agents.simulation import Simulation
 
 
 class TestElevatorAgent(unittest.TestCase):
     """Test case docstring."""
 
     def setUp(self):
-        self.env = simpy.Environment()
-        floors = []
+        building = Building()
         for i in range(10):
-            floors.append(Floor(i+1))
-        self.ctrl = ElevatorController(floors)
+            building.add_floor()
+        self.ctrl = ElevatorController(building.floors)
         self.first_elevator = self.ctrl.add_elevator()
-        self.agent = ElevatorAgent(self.env, self.first_elevator)
+
+        self.sim = Simulation(building, [], [self.ctrl])
+        self.env = self.sim.env
+        self.agent = self.sim.elevator_bank_agents[0].elevator_agents[0]
 
     def tearDown(self):
         pass

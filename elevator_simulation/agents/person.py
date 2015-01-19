@@ -7,10 +7,10 @@ from elevator_simulation.models.person import Person
 
 class PersonAgent(object):
     """Behavior for person agent"""
-    def __init__(self, env, **kwargs):
-        self.env = env
-        self.model = Person()
-        self.action = env.process(self.run())
+    def __init__(self, sim, model, **kwargs):
+        self.env = sim.env
+        self.model = model
+        self.action = self.env.process(self.run())
 
     def run(self):
         while True:
@@ -31,4 +31,5 @@ class PersonAgent(object):
             # when elevator arrives at stop, update location
 
     def call_and_wait_for_elevator(self):
-        self.elevator_controller_agent.call(sel
+        pass
+        #self.elevator_controller_agent.call(sel

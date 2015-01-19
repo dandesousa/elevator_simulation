@@ -40,7 +40,7 @@ class Building(object):
         """Gets a tuple of floors"""
         return self.__floors
 
-    def add_floor(self, floor):
+    def add_floor(self, floor=None):
         """Adds a floor to the building.
 
         :param floor Floor: floor to add
@@ -51,6 +51,9 @@ class Building(object):
         >>> fl in b.floors
         True
         """
+        if floor is None:
+            floor = Floor()
+
         if not isinstance(floor, Floor):
             raise TypeError("Expected param floor to be of type {}".format(Floor.__name__))
 

@@ -6,9 +6,9 @@ from elevator_simulation.models.building import Building
 
 
 class BuildingAgent(object):
-    def __init__(self, env):
-        self.env = env
-        self.model = Building()
+    def __init__(self, sim, model):
+        self.env = sim.env
+        self.model = model
 
         # TODO: create the buidling according to the specifications
         self.__elevator_available_events = [self.env.event() for floor in self.model.floors]
