@@ -50,11 +50,10 @@ def read_simulation(filename):
             schedule_data = person_data["schedule"]
             for event_data in schedule_data:
                 start_time = timedelta(seconds=event_data["start"])
-                location = building.floors[event_data["level"]]
+                location = building.floors[event_data["level"]-1]
                 description = event_data.get("description", "unknown")
                 person.schedule.add_event(start_time, location, description)
             people.append(person)
-
 
         simulation = Simulation(building, people, elevator_banks)
 
