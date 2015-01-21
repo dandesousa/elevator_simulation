@@ -2,10 +2,10 @@
 # encoding: utf-8
 
 import unittest
-from elevator_simulation.models.elevator import ElevatorController, Elevator, nearest_elevator_dispatch_strategy
+from elevator_simulation.models.elevator import ElevatorBank, Elevator, nearest_elevator_dispatch_strategy
 from elevator_simulation.models.building import Floor
 
-class TestElevatorController(unittest.TestCase):
+class TestElevatorBank(unittest.TestCase):
     """Tests various elevator controller function in the simulation."""
 
     def setUp(self):
@@ -13,7 +13,7 @@ class TestElevatorController(unittest.TestCase):
         for i in range(10):
             floors.append(Floor(i+1))
 
-        self.ctrl = ElevatorController(floors)
+        self.ctrl = ElevatorBank(floors)
         self.first_floor_elevator = self.ctrl.add_elevator()  # starts on the 1st floor
         self.fifth_floor_elevator = self.ctrl.add_elevator(starting_location=floors[4])  # starts on the 6th floor
 
@@ -33,39 +33,39 @@ class TestElevatorController(unittest.TestCase):
         strategy = nearest_elevator_dispatch_strategy
 
         # two idle elevators, someone presses the up button on the first floor
-        elevator = strategy(self.ctrl, self.ctrl.floors[0], 1)
+        elevator = strategy(self.ctrl.elevators, self.ctrl.floors, self.ctrl.floors[0], 1)
         self.assertEqual(self.first_floor_elevator, elevator)
         # two idle elevators, someone presses the down/up button on the 7th floor
-        elevator = strategy(self.ctrl, self.ctrl.floors[6], -1)
+        elevator = strategy(self.ctrl.elevators, self.ctrl.floors, self.ctrl.floors[6], -1)
         self.assertEqual(self.fifth_floor_elevator, elevator)
-        elevator = strategy(self.ctrl, self.ctrl.floors[6], 1)
+        elevator = strategy(self.ctrl.elevators, self.ctrl.floors, self.ctrl.floors[6], 1)
         self.assertEqual(self.fifth_floor_elevator, elevator)
         # two idle elevators, someone presses the down button on the 5th floor
-        elevator = strategy(self.ctrl, self.ctrl.floors[4], -1)
+        elevator = strategy(self.ctrl.elevators, self.ctrl.floors, self.ctrl.floors[4], -1)
         self.assertEqual(self.fifth_floor_elevator, elevator)
         # two idle elevators, someone presses the down button on the 2nd floor
-        elevator = strategy(self.ctrl, self.ctrl.floors[1], -1)
+        elevator = strategy(self.ctrl.elevators, self.ctrl.floors, self.ctrl.floors[1], -1)
         self.assertEqual(self.first_floor_elevator, elevator)
         # two idle elevators, someone presses the down button on the 4th floor
-        elevator = strategy(self.ctrl, self.ctrl.floors[3], -1)
+        elevator = strategy(self.ctrl.elevators, self.ctrl.floors, self.ctrl.floors[3], -1)
         self.assertEqual(self.fifth_floor_elevator, elevator)
 
         # make the fifth floor elevator go up
         self.fifth_floor_elevator.direction = 1
         # 1st floor idle, fifth floor up, someone presses the 4th floor up
-        elevator = strategy(self.ctrl, self.ctrl.floors[3], 1)
+        elevator = strategy(self.ctrl.elevators, self.ctrl.floors, self.ctrl.floors[3], 1)
         self.assertEqual(self.first_floor_elevator, elevator)  # moving away from us, so first floor sent
         # 1st floor idle, fifth floor up, someone presses the 4th floor up
-        elevator = strategy(self.ctrl, self.ctrl.floors[3], -1)
+        elevator = strategy(self.ctrl.elevators, self.ctrl.floors, self.ctrl.floors[3], -1)
         self.assertEqual(self.first_floor_elevator, elevator)  # moving away from us, so first floor sent
         # 1st floor idle, fifth floor up, someone presses the 5th floor up
-        elevator = strategy(self.ctrl, self.ctrl.floors[4], 1)
+        elevator = strategy(self.ctrl.elevators, self.ctrl.floors, self.ctrl.floors[4], 1)
         self.assertEqual(self.fifth_floor_elevator, elevator)  # moving just in time, fifth floor sent
         # 1st floor idle, fifth floor up, someone presses the 6th floor up
-        elevator = strategy(self.ctrl, self.ctrl.floors[5], 1)
+        elevator = strategy(self.ctrl.elevators, self.ctrl.floors, self.ctrl.floors[5], 1)
         self.assertEqual(self.fifth_floor_elevator, elevator)  # moving just in time, fifth floor sent
         # 1st floor idle, fifth floor up, someone presses the 6th floor down
-        elevator = strategy(self.ctrl, self.ctrl.floors[5], -1)
+        elevator = strategy(self.ctrl.elevators, self.ctrl.floors, self.ctrl.floors[5], -1)
         self.assertEqual(self.fifth_floor_elevator, elevator)  # moving opposite us, but still close enough
 
 
@@ -77,7 +77,7 @@ class TestElevator(unittest.TestCase):
         for i in range(10):
             floors.append(Floor(i+1))
 
-        self.ctrl = ElevatorController(floors)
+        self.ctrl = ElevatorBank(floors)
         self.ctrl.add_elevator()
         self.elevator = self.ctrl.elevators[0]
 

@@ -4,27 +4,28 @@
 from elevator_simulation.models.building import Floor
 
 
-def nearest_elevator_dispatch_strategy(ctrl, floor, direction):
+def nearest_elevator_dispatch_strategy(elevator_list, floor_list, floor, direction):
     """A dispatch strategy for determining the elevator to dispatch to a caller
 
     Follows the 'Nearest Elevator' algorithm as described in the following presentation:
         http://www.columbia.edu/~cs2035/courses/ieor4405.S13/p14.pdf
 
-    :param ctrl ElevatorController: the elevator controller the request was made at.
+    :param elevator_list list: list of the elevators to select from
+    :param floor_list list: list of floors to travel
     :param floor Floor: the floor the call occurred.
     :param direction int: the direction pressed by the user.
     """
     result = (None, -1)
-    for elevator in ctrl.elevators:
+    for elevator in elevator_list:
 
         distance = elevator.distance(floor)
 
         if elevator.moving_away(floor) and distance:  # suitability shouldn't be low if we are on the same floor
             suitability = 1
         elif elevator.direction == direction or not elevator.direction:  # moving in same or neutral direction
-            suitability = len(ctrl.floors) + 2 - distance
+            suitability = len(floor_list) + 2 - distance
         else:
-            suitability = len(ctrl.floors) + 1 - distance
+            suitability = len(floor_list) + 1 - distance
 
         best_elevator, best_suitability = result
         if suitability > best_suitability:
@@ -33,17 +34,19 @@ def nearest_elevator_dispatch_strategy(ctrl, floor, direction):
     return result[0]
 
 
-class ElevatorController(object):
-    def __init__(self, floors=None, dispatch_strategy=nearest_elevator_dispatch_strategy):
+class ElevatorBank(object):
+    def __init__(self, floors, **kwargs):
         """Constructs an elevator controller with a particular dispatch strategy.
 
         :param dispatch_strategy function: function that selects the elevator that should be dispatched.
+        :param elevator_cls type: The class of the type of elevators to create
         :note: dispatch strategy has a significant impact on elevator efficiency, by default it will
         use the nearest elevator strategy.
         """
+        self.__floors = floors
         self.__elevators = set()
-        self.__floors = tuple([] if not floors else floors)
-        self.__dispatch_strategy = dispatch_strategy
+        self.__dispatch_strategy = kwargs.get("dispatch_strategy", nearest_elevator_dispatch_strategy)
+        self.__elevator_cls = kwargs.get("elevator_cls", Elevator)
 
     @property
     def floors(self):
@@ -62,7 +65,7 @@ class ElevatorController(object):
 
         :rtype Elevator: Returns the elevator that was created
         """
-        elevator = Elevator(self, **kwargs)
+        elevator = self.__elevator_cls(self.floors, **kwargs)
         self.__elevators.add(elevator)
         return elevator
 
@@ -75,23 +78,22 @@ class ElevatorController(object):
         :param direction Direction: the direction the elevator caller wants to travel
 
         """
-        elevator = self.__dispatch_strategy(self, floor, direction)
+        elevator = self.__dispatch_strategy(self.elevators, self.floors, floor, direction)
         return elevator
 
 
 class Elevator(object):
-    def __init__(self, ctrl, **kwargs):
+    def __init__(self, floors, **kwargs):
         """Creates an elevator with the given settings.
 
-        :param ctrl ElevatorController: Reference to the controller that owns the elevator
         :param capacity int: the maximum number of people allowed on this elevator (def: 10)
         :param starting_location floor: the initial starting location for this elevator (def: 1st floor)
         """
-        self.__ctrl = ctrl
+        self.__floors = floors
         self.__stops = set()
         self.__capacity = kwargs.get("capacity", 10)
         self.direction = None
-        self.location = kwargs.get("starting_location", ctrl.floors[0])
+        self.location = kwargs.get("starting_location", self.__floors[0])
 
     @property
     def capacity(self):
@@ -147,8 +149,8 @@ class Elevator(object):
             return self.location
 
         next_level = self.location.level + self.direction
-        next_level = min(max(1, next_level), len(self.__ctrl.floors))  # boundaries check
-        floor = self.__ctrl.floors[next_level - 1]
+        next_level = min(max(1, next_level), len(self.__floors))  # boundaries check
+        floor = self.__floors[next_level - 1]
         return floor
 
     @property
@@ -161,7 +163,7 @@ class Elevator(object):
 
         :param floor Floor: floor to stop on
         """
-        if floor in self.__ctrl.floors:
+        if floor in self.__floors:
             self.__stops.add(floor)
         else:
             raise ValueError("Floor does not exist in the list of valid floors for this elevator".format(floor))

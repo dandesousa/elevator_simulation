@@ -4,7 +4,7 @@
 import simpy
 import unittest
 from elevator_simulation.models.building import Building
-from elevator_simulation.models.elevator import ElevatorController
+from elevator_simulation.models.elevator import ElevatorBank
 from elevator_simulation.agents.elevator import ElevatorAgent
 from elevator_simulation.agents.simulation import Simulation
 
@@ -16,7 +16,7 @@ class TestElevatorAgent(unittest.TestCase):
         building = Building()
         for i in range(10):
             building.add_floor()
-        self.ctrl = ElevatorController(building.floors)
+        self.ctrl = ElevatorBank(building.floors)
         self.first_elevator = self.ctrl.add_elevator()
 
         self.sim = Simulation(building, [], [self.ctrl])

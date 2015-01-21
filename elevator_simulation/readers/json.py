@@ -6,7 +6,7 @@ import json
 from datetime import timedelta
 from elevator_simulation.agents.simulation import Simulation
 from elevator_simulation.models.building import Building, Floor
-from elevator_simulation.models.elevator import ElevatorController
+from elevator_simulation.models.elevator import ElevatorBank
 from elevator_simulation.models.person import Person
 
 
@@ -36,7 +36,7 @@ def read_simulation(filename):
         elevator_data = data["elevator_banks"]
         elevator_banks = []
         for elevator_bank in elevator_data:
-            ctrl = ElevatorController(building.floors)  # TODO: read the strategy optionally?
+            ctrl = ElevatorBank(building.floors)  # TODO: read the strategy optionally?
             elevator_arg_list = elevator_bank["elevators"]
             for elevator_args in elevator_arg_list:
                 ctrl.add_elevator(**elevator_args)

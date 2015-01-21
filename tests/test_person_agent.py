@@ -4,7 +4,7 @@ import logging
 import simpy
 import unittest
 from elevator_simulation.models.building import Building
-from elevator_simulation.models.elevator import ElevatorController
+from elevator_simulation.models.elevator import ElevatorBank
 from elevator_simulation.models.person import Person
 from elevator_simulation.agents.simulation import Simulation
 from datetime import timedelta
@@ -17,7 +17,7 @@ class TestElevatorAgent(unittest.TestCase):
         building = Building()
         for i in range(10):
             building.add_floor()
-        self.ctrl = ElevatorController(building.floors)
+        self.ctrl = ElevatorBank(building.floors)
         self.first_elevator = self.ctrl.add_elevator()
         self.person = Person()
         self.person.schedule.add_event(timedelta(hours=7), building.floors[6])
