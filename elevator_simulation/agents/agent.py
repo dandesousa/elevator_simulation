@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 
-class Agent(object):
+class AgentMixin(object):
     """Base class defining agents """
     def __init__(self, simulation, model):
         self.__simulation = simulation

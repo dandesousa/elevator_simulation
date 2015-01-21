@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 from datetime import timedelta
-from elevator_simulation.agents import Agent
+from elevator_simulation.agents import AgentMixin
 import logging
 
 
@@ -43,7 +43,7 @@ class ElevatorTrip(object):
         return ",".join([str(getattr(self, attr)) for attr in ElevatorTrip.__slots__])
 
 
-class PersonAgent(Agent):
+class PersonAgent(AgentMixin):
     """Behavior for person agent"""
     person_id = 0
 
@@ -56,7 +56,7 @@ class PersonAgent(Agent):
         :param elevator_call_strategy func: The strategy to use when deciding the elevator bank to use.
         :param trip_complete func: The function to invoke when elevator arrives (def: logs)
         """
-        Agent.__init__(self, sim, model)
+        AgentMixin.__init__(self, sim, model)
         self.person_id = PersonAgent.person_id
         PersonAgent.person_id += 1
         self.action = self.env.process(self.run())

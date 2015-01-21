@@ -4,7 +4,7 @@
 import simpy
 from elevator_simulation.agents.building import BuildingAgent
 from elevator_simulation.agents.person import PersonAgent
-from elevator_simulation.agents.elevator import ElevatorControllerAgent
+from elevator_simulation.agents.elevator import ElevatorBankAgent
 
 
 class Simulation(object):
@@ -23,7 +23,7 @@ class Simulation(object):
         self.__person_models = people
         self.__person_agents = [PersonAgent(self, person) for person in people]
         self.__elevator_bank_models = elevator_banks
-        self.__elevator_bank_agents = [ElevatorControllerAgent(self, elevator_bank) for elevator_bank in elevator_banks]
+        self.__elevator_bank_agents = [ElevatorBankAgent(self, elevator_bank) for elevator_bank in elevator_banks]
 
     def run(self):
         self.env.run(until=24*3600)

@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from elevator_simulation.agents import Agent
+from elevator_simulation.agents import AgentMixin
 import logging
 
 
 logger = logging.getLogger(__name__)
 
 
-class ElevatorControllerAgent(Agent):
+class ElevatorBankAgent(AgentMixin):
     """Docstring for ElevatorControllerAgent. """
 
     def __init__(self, sim, model, **kwargs):
@@ -20,7 +20,7 @@ class ElevatorControllerAgent(Agent):
         move.
 
         """
-        Agent.__init__(self, sim, model)
+        AgentMixin.__init__(self, sim, model)
 
         self.elevator_called = self.env.event()
         self.elevator_agents = [ElevatorAgent(sim, elevator) for elevator in self.model.elevators]
@@ -36,7 +36,7 @@ class ElevatorControllerAgent(Agent):
         agent.add_stop(floor)
 
 
-class ElevatorAgent(Agent):
+class ElevatorAgent(AgentMixin):
     """agent for an elevator"""
     def __init__(self, sim, model, **kwargs):
         """Constructs an elevator agent for simpy
@@ -46,7 +46,7 @@ class ElevatorAgent(Agent):
         :param elevator_wait_secs int: seconds between the elevator doors opening and closing.
         :param elevator_travel_secs int: number of seconds to move between two levels in the building.
         """
-        Agent.__init__(self, sim, model)
+        AgentMixin.__init__(self, sim, model)
         self.action = self.env.process(self.run())
 
         # events in this simulation
