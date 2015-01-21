@@ -4,6 +4,10 @@
 import simpy
 from datetime import timedelta
 from elevator_simulation.models.person import Person
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def call_strategy_all(elevator_banks):
@@ -42,12 +46,19 @@ class ElevatorTrip(object):
 
 class PersonAgent(object):
     """Behavior for person agent"""
+    person_id = 0
+
+    def __repr__(self):
+        return "<Person(id={})>".format(self.person_id)
+
     def __init__(self, sim, model, **kwargs):
         """creates a person agent that defines how an individual behaves.
 
         :param elevator_call_strategy func: The strategy to use when deciding the elevator bank to use.
         :param trip_complete func: The function to invoke when elevator arrives (def: logs)
         """
+        self.person_id = PersonAgent.person_id
+        PersonAgent.person_id += 1
         self.simulation = sim
         self.env = sim.env
         self.model = model
@@ -56,6 +67,9 @@ class PersonAgent(object):
         self.trip_complete = kwargs.get("trip_complete", default_trip_complete)
 
     def run(self):
+        logger.debug("starting person agent for {}".format(self))
+        # set the model location to the first floor
+        self.model.location = self.simulation.building_agent.model.floors[0]
         while True:
             now_td = timedelta(self.env.now)
             next_event = self.model.schedule.next_event(now_td)
@@ -64,7 +78,9 @@ class PersonAgent(object):
             # TODO: check if time is negative, if so, proceed directly without
             # waiting...
             # waits until the next event time
+            logger.debug("{} waiting until {}".format(self, time_until_next_event.total_seconds()))
             yield self.env.timeout(time_until_next_event.total_seconds())
+            logger.debug("{} resuming at {}".format(self, self.env.now))
 
             trip = ElevatorTrip()
             trip.person = self.model
@@ -78,12 +94,15 @@ class PersonAgent(object):
             # if elevator, call elevator and wait
             trip.elevator_called_secs = self.env.now
             elevator_banks = self.call_strategy(self.simulation.elevator_bank_agents)
+            logger.debug("{} chose {} elevator_bank(s) to call".format(self, len(elevator_banks)))
             for agent in elevator_banks:
-                agent.call(trip.event, trip.direction)
+                agent.call(trip.start_location, trip.direction)
 
             # Wait until notified of elevator open door on floor
-            elevator_available = self.simulation.build_agent.elevator_available_event(trip.start_location)
+            elevator_available = self.simulation.building_agent.elevator_available_event(trip.start_location)
+            logger.debug("{} waiting until elevator is available".format(self))
             yield elevator_available
+            logger.debug("{} saw elevator is available".format(self))
             elevator_agent = elevator_available.value
             trip.elevator_arrived_secs = self.env.now
 

@@ -3,6 +3,10 @@
 
 import simpy
 from elevator_simulation.models.elevator import ElevatorController
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class ElevatorControllerAgent(object):
@@ -55,6 +59,7 @@ class ElevatorAgent(object):
         :param elevator_wait_secs int: seconds between the elevator doors opening and closing.
         :param elevator_travel_secs int: number of seconds to move between two levels in the building.
         """
+        self.simulation = sim
         self.env = sim.env
         self.model = model
         self.action = self.env.process(self.run())
@@ -85,27 +90,44 @@ class ElevatorAgent(object):
     def move(self):
         """moves toward the destination until it runs out of stops"""
         while self.model.stops:
+            logger.debug("elevator at {} must decide to move".format(self.model.location))
             direction = self.model.direction
-            moving_towards_stop = not all([self.model.moving_away(floor) for floor in self.model.stops])
-            if not direction:
-                self.model.direction = 1
+            if self.model.location not in self.model.stops:
+                logger.debug("elevator is not at one of the stops: {}".format(self.model.stops))
                 moving_towards_stop = not all([self.model.moving_away(floor) for floor in self.model.stops])
-                if not moving_towards_stop:
-                    self.model.direction = -1
-            elif direction and moving_towards_stop:
-                pass  # continue moving towards next location
-            else:  # we need to switch directions
-                self.model.direction *= -1
+                if not direction:
+                    self.model.direction = 1
+                    moving_towards_stop = not all([self.model.moving_away(floor) for floor in self.model.stops])
+                    if not moving_towards_stop:
+                        self.model.direction = -1
+                elif direction and moving_towards_stop:
+                    pass  # continue moving towards next location
+                else:  # we need to switch directions
+                    self.model.direction *= -1
 
-            # move to the next floor
-            yield from self.advance_to_next_location()
+                # move to the next floor
+                logger.debug("adv {}".format(self.env.now))
+                yield self.env.timeout(self.elevator_travel_secs)
+                self.model.location = self.model.next_location
+                logger.debug("done adv {}".format(self.env.now))
+                self.__arrived_at_floor.succeed()
+                self.__arrived_at_floor = self.__reset_event(self.__arrived_at_floor)
+            else:
+                logger.debug("elevator is located at a stop location")
+                direction = 0  # don't move if we are at the stop
 
             if self.model.location in self.model.stops:
+                logger.debug("elevator is at stop {}, opening doors".format(self.model.location))
+                logger.debug(self.env.now)
                 yield from self.open_doors()
+                logger.debug(self.env.now)
+                self.simulation.building_agent.elevator_available_event(self.model.location).succeed(self)
+                self.simulation.building_agent.reset_elevator_available_event(self.model.location)
                 yield from self.wait_for_passengers()
                 yield from self.close_doors()
 
 
+        logger.debug("elevator at {}, done moving no stops".format(self.model.location))
         # become idle, no more stops
         self.model.direction = 0
 
@@ -124,10 +146,15 @@ class ElevatorAgent(object):
         self.model.remove_stop(self.model.location)
 
     def advance_to_next_location(self):
+        logger.debug("advancing {} + {}".format(self.env.now, self.elevator_travel_secs))
+        logger.debug(self.env.now)
         yield self.env.timeout(self.elevator_travel_secs)
         self.model.location = self.model.next_location
+        logger.debug(self.env.now)
+        logger.debug("done advanced")
         self.__arrived_at_floor.succeed()
         self.__arrived_at_floor = self.__reset_event(self.__arrived_at_floor)
+        logger.debug("reset")
 
     @property
     def arrived_at_floor_event(self):

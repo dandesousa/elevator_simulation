@@ -14,9 +14,9 @@ class BuildingAgent(object):
         self.__elevator_available_events = [self.env.event() for floor in self.model.floors]
 
     def elevator_available_event(self, floor):
-        return self.__elevator_available_events[floor.level]
+        return self.__elevator_available_events[floor.level-1]
 
     def reset_elevator_available_event(self, floor):
         event = self.env.event()
         event.callbacks = self.elevator_available_event(floor).callbacks
-        self.__elevator_available_events[floor.level] = self.env.event()
+        self.__elevator_available_events[floor.level-1] = self.env.event()

@@ -43,7 +43,7 @@ class ElevatorController(object):
         """
         self.__elevators = set()
         self.__floors = tuple([] if not floors else floors)
-        self.__dispatch_strategy = None
+        self.__dispatch_strategy = dispatch_strategy
 
     @property
     def floors(self):
