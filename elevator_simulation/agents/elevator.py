@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-import simpy
-from elevator_simulation.models.elevator import ElevatorController
+from elevator_simulation.agents import Agent
 import logging
 
 
 logger = logging.getLogger(__name__)
 
 
-class ElevatorControllerAgent(object):
-
+class ElevatorControllerAgent(Agent):
     """Docstring for ElevatorControllerAgent. """
 
     def __init__(self, sim, model, **kwargs):
@@ -22,20 +20,10 @@ class ElevatorControllerAgent(object):
         move.
 
         """
-        self.env = sim.env
+        Agent.__init__(self, sim, model)
 
         self.elevator_called = self.env.event()
-        self.model = model
-
-        self.action = self.env.process(self.run())
         self.elevator_agents = [ElevatorAgent(sim, elevator) for elevator in self.model.elevators]
-
-    def run(self):
-        """defines the behavior of the elevator controller in the simulation"""
-        while True:
-            # wait to take an action until the elevator is called
-            #yield self.elevator_called
-            yield self.env.timeout(100)
 
     def call(self, floor, direction):
         """calls an elevator in this elevator bank.
@@ -46,10 +34,9 @@ class ElevatorControllerAgent(object):
         elevator = self.model.call_elevator(floor, direction)
         agent = [agent for agent in self.elevator_agents if agent.model == elevator][0]
         agent.add_stop(floor)
-        #self.elevator_called.succeed()
 
 
-class ElevatorAgent(object):
+class ElevatorAgent(Agent):
     """agent for an elevator"""
     def __init__(self, sim, model, **kwargs):
         """Constructs an elevator agent for simpy
@@ -59,9 +46,7 @@ class ElevatorAgent(object):
         :param elevator_wait_secs int: seconds between the elevator doors opening and closing.
         :param elevator_travel_secs int: number of seconds to move between two levels in the building.
         """
-        self.simulation = sim
-        self.env = sim.env
-        self.model = model
+        Agent.__init__(self, sim, model)
         self.action = self.env.process(self.run())
 
         # events in this simulation
@@ -73,6 +58,9 @@ class ElevatorAgent(object):
         self.elevator_wait_secs = kwargs.get("elevator_wait_secs", 5)
         self.elevator_travel_secs = kwargs.get("elevator_travel_secs", 7)
 
+        self.__passengers = set()
+
+    # TODO this probably isnt safe, delete later and refactor test
     def __reset_event(self, event):
         ev = self.env.event()
         ev.callbacks = event.callbacks
@@ -82,7 +70,7 @@ class ElevatorAgent(object):
         while True:
             # wait until we add a new stop to the elevator
             yield self.__new_stop_added
-            self.__new_stop_added = self.__reset_event(self.__new_stop_added)
+            self.__new_stop_added = self.env.event()
 
             # moves in the direction of stop
             yield from self.move()
@@ -144,17 +132,14 @@ class ElevatorAgent(object):
     def open_doors(self):
         yield self.env.timeout(self.elevator_open_secs)
         self.model.remove_stop(self.model.location)
+        for person in self.__passengers:
+            person.notify_floor_reached(self.model.location)
 
-    def advance_to_next_location(self):
-        logger.debug("advancing {} + {}".format(self.env.now, self.elevator_travel_secs))
-        logger.debug(self.env.now)
-        yield self.env.timeout(self.elevator_travel_secs)
-        self.model.location = self.model.next_location
-        logger.debug(self.env.now)
-        logger.debug("done advanced")
-        self.__arrived_at_floor.succeed()
-        self.__arrived_at_floor = self.__reset_event(self.__arrived_at_floor)
-        logger.debug("reset")
+    def enter(self, person):
+        self.__passengers.add(person)
+
+    def exit(self, person):
+        self.__passengers.remove(person)
 
     @property
     def arrived_at_floor_event(self):

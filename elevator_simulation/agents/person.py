@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-import simpy
 from datetime import timedelta
-from elevator_simulation.models.person import Person
+from elevator_simulation.agents import Agent
 import logging
 
 
@@ -41,10 +40,10 @@ class ElevatorTrip(object):
         self.distance = None
 
     def __str__(self):
-        return ",".join([getattr(self, attr) for attr in self.__slots__])
+        return ",".join([str(getattr(self, attr)) for attr in ElevatorTrip.__slots__])
 
 
-class PersonAgent(object):
+class PersonAgent(Agent):
     """Behavior for person agent"""
     person_id = 0
 
@@ -57,14 +56,24 @@ class PersonAgent(object):
         :param elevator_call_strategy func: The strategy to use when deciding the elevator bank to use.
         :param trip_complete func: The function to invoke when elevator arrives (def: logs)
         """
+        Agent.__init__(self, sim, model)
         self.person_id = PersonAgent.person_id
         PersonAgent.person_id += 1
-        self.simulation = sim
-        self.env = sim.env
-        self.model = model
         self.action = self.env.process(self.run())
         self.call_strategy = kwargs.get("elevator_call_strategy", call_strategy_random)
         self.trip_complete = kwargs.get("trip_complete", default_trip_complete)
+
+        # events we depend upon
+        self.__floor_reached_event = self.env.event()
+
+    def notify_floor_reached(self, floor):
+        """notifies the person that the floor was reached.
+
+        :param floor Floor: the floor that was reached.
+        """
+        event = self.__floor_reached_event
+        self.__floor_reached_event = self.env.event()
+        event.succeed(floor)
 
     def run(self):
         logger.debug("starting person agent for {}".format(self))
@@ -73,6 +82,11 @@ class PersonAgent(object):
         while True:
             now_td = timedelta(self.env.now)
             next_event = self.model.schedule.next_event(now_td)
+            # if no event left, we are done
+            if next_event is None:
+                logger.debug("done with {}".format(self))
+                break
+
             time_until_next_event = next_event.start_time - now_td
 
             # TODO: check if time is negative, if so, proceed directly without
@@ -107,11 +121,13 @@ class PersonAgent(object):
             trip.elevator_arrived_secs = self.env.now
 
             # TODO: update capacity
+            elevator_agent.enter(self)
             elevator_agent.add_stop(trip.end_location)
 
             # TODO: need to wait for the elevator doors to open
             while elevator_agent.model.location != trip.end_location:
-                yield elevator_agent.arrived_at_floor_event
+                yield self.__floor_reached_event
+            elevator_agent.exit(self)
 
             trip.travel_secs = self.env.now - trip.elevator_arrived_secs
             self.model.location = trip.end_location  # we reached our location, yay!
