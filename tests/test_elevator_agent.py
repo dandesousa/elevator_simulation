@@ -3,7 +3,7 @@
 
 import simpy
 import unittest
-from elevator_simulation.agents import Simulation, ElevatorBank, Building
+from elevator_simulation.agents import Simulation, ElevatorBank, Building, Person
 
 
 class TestElevatorAgent(unittest.TestCase):
@@ -18,6 +18,25 @@ class TestElevatorAgent(unittest.TestCase):
         pass
 
     # TODO: add a test for stopping at each floor
+
+    def test_enter_exit_elevator(self):
+        person = Person(self.sim)
+        with self.assertRaises(RuntimeError):
+            self.elevator.enter(person)
+
+        self.elevator.open_doors()
+        self.assertTrue(self.elevator.is_open)
+        self.elevator.enter(person)
+        self.assertIn(person, self.elevator)
+        self.elevator.close_doors()
+        self.assertFalse(self.elevator.is_open)
+
+        with self.assertRaises(RuntimeError):
+            self.elevator.exit(person)
+
+        self.elevator.open_doors()
+        self.elevator.exit(person)
+        self.assertNotIn(person, self.elevator)
 
     def test_add_elevator_stop_top(self):
         travel_time = self.elevator.elevator_travel_secs

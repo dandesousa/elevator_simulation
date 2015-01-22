@@ -93,6 +93,8 @@ class ElevatorBank(object):
         elevator.add_stop(floor)
         return elevator
 
+    # TODO: contains for elevator
+
 
 class Elevator(object):
     """class to model an elevator"""
@@ -107,12 +109,46 @@ class Elevator(object):
         self.__stops = set()
         self.__capacity = kwargs.get("capacity", 10)
         self.__direction = None
+        self.__passengers = set()
+        self.__doors_open = False
         self.location = kwargs.get("starting_location", self.__valid_floors[0])
 
     @property
     def capacity(self):
         """the maximum number of people allowed on this elevator."""
         return self.__capacity
+
+    @property
+    def passengers(self):
+        """the passengers currently in the elevator"""
+        return frozenset(self.__passengers)
+
+    def __contains__(self, person):
+        """returns True if the passenger is in the elevator"""
+        return person in self.__passengers
+
+    @property
+    def is_open(self):
+        """returns true if the doors are open"""
+        return self.__doors_open
+
+    def open_doors(self):
+        self.__doors_open = True
+
+    def close_doors(self):
+        self.__doors_open = False
+
+    def enter(self, person):
+        if self.is_open:
+            self.__passengers.add(person)
+        else:
+            raise RuntimeError("Unable to enter elevator, doors are closed")
+
+    def exit(self, person):
+        if self.is_open:
+            self.__passengers.remove(person)
+        else:
+            raise RuntimeError("Unable to exit elevator, doors are closed")
 
     def distance(self, floor):
         """computes the distance between an elevator and the floor"""

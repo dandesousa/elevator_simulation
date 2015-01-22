@@ -56,7 +56,6 @@ class Elevator(AgentMixin, ElevatorModel):
         self.elevator_wait_secs = kwargs.get("elevator_wait_secs", 5)
         self.elevator_travel_secs = kwargs.get("elevator_travel_secs", 7)
 
-        self.__passengers = set()
 
     # TODO this probably isnt safe, delete later and refactor test
     def __reset_event(self, event):
@@ -106,20 +105,28 @@ class Elevator(AgentMixin, ElevatorModel):
             if self.location in self.stops:
                 logger.debug("elevator is at stop {}, opening doors".format(self.location))
                 logger.debug(self.env.now)
-                yield from self.open_doors()
+                yield from self.__open_doors()
                 logger.debug(self.env.now)
                 self.simulation.building.elevator_available_event(self.location).succeed(self)
                 self.simulation.building.reset_elevator_available_event(self.location)
                 yield from self.wait_for_passengers()
-                yield from self.close_doors()
+                yield from self.__close_doors()
 
 
         logger.debug("elevator at {}, done moving no stops".format(self.location))
         # become idle, no more stops
         self.direction = 0
 
-    def close_doors(self):
+    def __open_doors(self):
+        yield self.env.timeout(self.elevator_open_secs)
+        self.open_doors()
+        self.remove_stop(self.location)
+        for person in self.passengers:
+            person.notify_floor_reached(self.location)
+
+    def __close_doors(self):
         yield self.env.timeout(self.elevator_close_secs)
+        self.close_doors()
 
     def wait_for_passengers(self):
         yield self.env.timeout(self.elevator_wait_secs)
@@ -127,18 +134,6 @@ class Elevator(AgentMixin, ElevatorModel):
     @property
     def total_elevator_travel_secs(self):
         return self.elevator_travel_secs + self.elevator_open_secs + self.elevator_close_secs + self.elevator_wait_secs
-
-    def open_doors(self):
-        yield self.env.timeout(self.elevator_open_secs)
-        self.remove_stop(self.location)
-        for person in self.__passengers:
-            person.notify_floor_reached(self.location)
-
-    def enter(self, person):
-        self.__passengers.add(person)
-
-    def exit(self, person):
-        self.__passengers.remove(person)
 
     @property
     def arrived_at_floor_event(self):
