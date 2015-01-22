@@ -49,7 +49,6 @@ class Elevator(AgentMixin, ElevatorModel):
 
         # events in this simulation
         self.__new_stop_added = self.env.event()
-        self.__arrived_at_floor = self.env.event()
 
         self.elevator_open_secs = kwargs.get("elevator_open_secs", 5)
         self.elevator_close_secs = kwargs.get("elevator_close_secs", 5)
@@ -95,9 +94,9 @@ class Elevator(AgentMixin, ElevatorModel):
                 logger.debug("adv {}".format(self.env.now))
                 yield self.env.timeout(self.elevator_travel_secs)
                 self.location = self.next_location
+                for person in self.passengers:
+                    person.notify_floor_reached(self.location)
                 logger.debug("done adv {}".format(self.env.now))
-                self.__arrived_at_floor.succeed()
-                self.__arrived_at_floor = self.__reset_event(self.__arrived_at_floor)
             else:
                 logger.debug("elevator is located at a stop location")
                 direction = 0  # don't move if we are at the stop
@@ -122,7 +121,7 @@ class Elevator(AgentMixin, ElevatorModel):
         self.open_doors()
         self.remove_stop(self.location)
         for person in self.passengers:
-            person.notify_floor_reached(self.location)
+            person.notify_elevator_door_open(self)
 
     def __close_doors(self):
         yield self.env.timeout(self.elevator_close_secs)
@@ -134,10 +133,6 @@ class Elevator(AgentMixin, ElevatorModel):
     @property
     def total_elevator_travel_secs(self):
         return self.elevator_travel_secs + self.elevator_open_secs + self.elevator_close_secs + self.elevator_wait_secs
-
-    @property
-    def arrived_at_floor_event(self):
-        return self.__arrived_at_floor
 
     def add_stop(self, floor, add=True):
         """adds a new stop to the elevator and signals that it should start moving."""

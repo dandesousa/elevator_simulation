@@ -69,6 +69,16 @@ class Person(AgentMixin, PersonModel):
 
         # events we depend upon
         self.__floor_reached_event = self.env.event()
+        self.__floor_reached_callback = kwargs.get("floor_reached_callback", None)
+        self.notify_floor_reached(None)
+        self.__elevator_door_open_event = self.env.event()
+
+    def notify_elevator_door_open(self, elevator):
+        """notifies the person that the elevator door opened.
+        """
+        event = self.__elevator_door_open_event
+        self.__elevator_door_open_event = self.env.event()
+        event.succeed(elevator)
 
     def notify_floor_reached(self, floor):
         """notifies the person that the floor was reached.
@@ -77,6 +87,8 @@ class Person(AgentMixin, PersonModel):
         """
         event = self.__floor_reached_event
         self.__floor_reached_event = self.env.event()
+        if self.__floor_reached_callback:
+            self.__floor_reached_event.callbacks.append(self.__floor_reached_callback)
         event.succeed(floor)
 
     def run(self):
@@ -130,7 +142,7 @@ class Person(AgentMixin, PersonModel):
 
             # TODO: need to wait for the elevator doors to open
             while elevator_agent.location != trip.end_location:
-                yield self.__floor_reached_event
+                yield self.__elevator_door_open_event
             elevator_agent.exit(self)
 
             trip.travel_secs = self.env.now - trip.elevator_arrived_secs

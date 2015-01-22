@@ -49,7 +49,9 @@ class TestElevatorAgent(unittest.TestCase):
             self.assertEqual(expected_level, self.elevator.location.level)
             num_tests += 1
 
-        self.elevator.arrived_at_floor_event.callbacks.append(test_floor)
+        person = Person(self.sim, floor_reached_callback=test_floor)
+        self.elevator.open_doors()
+        self.elevator.enter(person)
         self.elevator.add_stop(self.elevator_bank.floors[-1])
         self.sim.env.run(until=total_run_time)
         self.assertEqual(total_run_time, self.sim.env.now)
