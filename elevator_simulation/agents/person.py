@@ -114,7 +114,7 @@ class Person(AgentMixin, PersonModel):
             elevator_banks = self.call_strategy(self.simulation.elevator_banks)
             logger.debug("{} chose {} elevator_bank(s) to call".format(self, len(elevator_banks)))
             for agent in elevator_banks:
-                agent.call(trip.start_location, trip.direction)
+                agent.call_to(trip.start_location, trip.direction)
 
             # Wait until notified of elevator open door on floor
             elevator_available = self.simulation.building.elevator_available_event(trip.start_location)

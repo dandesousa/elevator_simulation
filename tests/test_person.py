@@ -4,8 +4,7 @@
 
 import unittest
 from datetime import timedelta
-from elevator_simulation.models.building import Floor
-from elevator_simulation.models.person import Person, Schedule
+from elevator_simulation.models import Floor, Person, Schedule
 
 
 class TestPerson(unittest.TestCase):

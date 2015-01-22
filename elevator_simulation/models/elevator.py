@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from elevator_simulation.models.building import Floor
+from elevator_simulation.models import Floor
 
 
 def nearest_elevator_dispatch_strategy(elevator_list, floor_list, floor, direction):
@@ -35,6 +35,8 @@ def nearest_elevator_dispatch_strategy(elevator_list, floor_list, floor, directi
 
 
 class ElevatorBank(object):
+    """class to model an elevator bank controller"""
+
     def __init__(self, floors, **kwargs):
         """Constructs an elevator controller with a particular dispatch strategy.
 
@@ -70,7 +72,7 @@ class ElevatorBank(object):
     def add_elevator(self, **kwargs):
         """Adds an eleavtor to the elevator bank of this controller.
 
-        See Elevator.__init__ for parameters
+        See self.elevator_type.__init__ for parameters
 
         :rtype Elevator: Returns the elevator that was created
         """
@@ -78,7 +80,7 @@ class ElevatorBank(object):
         self.__elevators.add(elevator)
         return elevator
 
-    def call_elevator(self, floor, direction):
+    def call_to(self, floor, direction):
         """Asks to dispatch an elevator to the requested floor.
 
         Dispatches the elevator according to the elevator dispatch strategy set by the user.
@@ -88,21 +90,24 @@ class ElevatorBank(object):
 
         """
         elevator = self.__dispatch_strategy(self.elevators, self.floors, floor, direction)
+        elevator.add_stop(floor)
         return elevator
 
 
 class Elevator(object):
+    """class to model an elevator"""
+
     def __init__(self, floors, **kwargs):
         """Creates an elevator with the given settings.
 
         :param capacity int: the maximum number of people allowed on this elevator (def: 10)
         :param starting_location floor: the initial starting location for this elevator (def: 1st floor)
         """
-        self.__floors = floors
+        self.__valid_floors = floors
         self.__stops = set()
         self.__capacity = kwargs.get("capacity", 10)
-        self.direction = None
-        self.location = kwargs.get("starting_location", self.__floors[0])
+        self.__direction = None
+        self.location = kwargs.get("starting_location", self.__valid_floors[0])
 
     @property
     def capacity(self):
@@ -158,8 +163,8 @@ class Elevator(object):
             return self.location
 
         next_level = self.location.level + self.direction
-        next_level = min(max(1, next_level), len(self.__floors))  # boundaries check
-        floor = self.__floors[next_level - 1]
+        next_level = min(max(1, next_level), len(self.__valid_floors))  # boundaries check
+        floor = self.__valid_floors[next_level - 1]
         return floor
 
     @property
@@ -172,7 +177,7 @@ class Elevator(object):
 
         :param floor Floor: floor to stop on
         """
-        if floor in self.__floors:
+        if floor in self.__valid_floors:
             self.__stops.add(floor)
         else:
             raise ValueError("Floor does not exist in the list of valid floors for this elevator".format(floor))
@@ -188,4 +193,4 @@ class Elevator(object):
             raise ValueError("Floor cannot be removed because it is not a stop on the elevator".format(floor))
 
     def __repr__(self):
-        return "<Elevator(location={}, direction={}>".format(self.location, self.direction)
+        return "Elevator(location={}, direction={}".format(self.location, self.direction)

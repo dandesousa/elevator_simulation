@@ -32,15 +32,6 @@ class ElevatorBank(AgentMixin, ElevatorBankModel):
         """wrapper for creating an elevator object"""
         return self._elevator_cls(self.simulation, self.floors, **kwargs)
 
-    def call(self, floor, direction):
-        """calls an elevator in this elevator bank.
-
-        :param floor Floor: the floor it was called from
-        :param direction int: the direction it was called for
-        """
-        elevator = self.call_elevator(floor, direction)
-        elevator.add_stop(floor)
-
 
 class Elevator(AgentMixin, ElevatorModel):
     """agent for an elevator"""
