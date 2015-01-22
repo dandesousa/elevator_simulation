@@ -3,36 +3,39 @@
 
 
 class Floor(object):
+    """class representing a floor."""
+
     def __init__(self, level=None):
+        """intializes a floor with a level label"""
         self._level = level
-        # TODO: remove these totall un-needed properties
-        self.__elevator_lobby = None
-        self.__office_space = None
-        self.__stair_well = None
-        self.__lunch_room = None
 
     @property
     def level(self):
+        """integer identifier indicates the height of the floor relative to other floors"""
         return self._level
 
     def direction(self, fl):
-        """the direction you must travel to from this floor to the passed floor"""
+        """the direction you must travel to from this floor to the passed floor
+
+        :param fl Floor: the floor to return the direction towards.
+        """
         return (fl.level - self.level) / self.distance(fl)
 
     def distance(self, fl):
-        """computes the distance between two floors based on the level"""
+        """computes the distance between two floors based on the level
+
+        :param fl Floor: the floor to calculate the distance between."""
         return abs(self.level - fl.level)
 
     def __repr__(self):
-        return "<Floor(level={})>".format(self.level)
+        return "Floor({})".format(self.level)
 
 
 class Building(object):
-    """Class which models the building used in the simulation.
+    """Class which models the building used in the simulation."""
 
-    TODO: adding this here at first but might not matter later
-    """
     def __init__(self):
+        """intializes a building with an empty set of floors"""
         self.__floors = tuple()
 
     @property
