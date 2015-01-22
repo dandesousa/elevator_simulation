@@ -3,20 +3,17 @@
 
 
 class AgentMixin(object):
-    """Base class defining agents """
-    def __init__(self, simulation, model):
+    """Mixin class defining agents of a simpy simulation."""
+
+    def __init__(self, simulation):
         self.__simulation = simulation
-        self.__env = simulation.env
-        self.__model = model
 
     @property
     def simulation(self):
+        """the simulation object that this agent lives under"""
         return self.__simulation
 
     @property
     def env(self):
-        return self.__env
-
-    @property
-    def model(self):
-        return self.__model
+        """the simpy environment under which the simulation is running"""
+        return self.__simulation.env

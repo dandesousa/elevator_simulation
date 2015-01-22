@@ -4,10 +4,7 @@
 
 import json
 from datetime import timedelta
-from elevator_simulation.agents.simulation import Simulation
-from elevator_simulation.models.building import Building, Floor
-from elevator_simulation.models.elevator import ElevatorBank
-from elevator_simulation.models.person import Person
+from elevator_simulation.agents import ElevatorBank, Person, Simulation
 
 
 def read_simulation(filename):
@@ -26,35 +23,29 @@ def read_simulation(filename):
 
         building_data = data["building"]
         num_floors = building_data["floors"]
-        building = Building()
-        for i in range(num_floors):
-            building.add_floor(Floor())
+        simulation = Simulation(number_of_floors=num_floors)
 
         if "elevator_banks" not in data:
             raise ValueError("Expected 'elevator_banks' element in file")
 
         elevator_data = data["elevator_banks"]
-        elevator_banks = []
         for elevator_bank in elevator_data:
-            ctrl = ElevatorBank(building.floors)  # TODO: read the strategy optionally?
+            ctrl = ElevatorBank(simulation, simulation.building.floors)  # TODO: read the strategy optionally?
             elevator_arg_list = elevator_bank["elevators"]
             for elevator_args in elevator_arg_list:
                 ctrl.add_elevator(**elevator_args)
-            elevator_banks.append(ctrl)
+            simulation.elevator_banks.append(ctrl)
 
         # create the people according to person/schedule specifications
         people_data = data["people"]
-        people = []
         for person_data in people_data:
-            person = Person(**person_data)
+            person = Person(simulation, **person_data)
             schedule_data = person_data["schedule"]
             for event_data in schedule_data:
                 start_time = timedelta(seconds=event_data["start"])
-                location = building.floors[event_data["level"]-1]
+                location = simulation.building.floors[event_data["level"]-1]
                 description = event_data.get("description", "unknown")
                 person.schedule.add_event(start_time, location, description)
-            people.append(person)
-
-        simulation = Simulation(building, people, elevator_banks)
+            simulation.people.append(person)
 
     return simulation

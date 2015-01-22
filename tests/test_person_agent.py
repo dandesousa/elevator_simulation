@@ -1,32 +1,26 @@
 #!/usr/bin/env python
 # encoding: utf-8
+
 import logging
-import simpy
 import unittest
-from elevator_simulation.models.building import Building
-from elevator_simulation.models.elevator import ElevatorBank
-from elevator_simulation.models.person import Person
-from elevator_simulation.agents.simulation import Simulation
+from elevator_simulation.agents import Person, Simulation, ElevatorBank
 from datetime import timedelta
+
 
 class TestElevatorAgent(unittest.TestCase):
     """Test case docstring."""
 
     def setUp(self):
         logging.basicConfig(format="%(levelname)s %(asctime)s: %(message)s", level=logging.DEBUG)
-        building = Building()
-        for i in range(10):
-            building.add_floor()
-        self.ctrl = ElevatorBank(building.floors)
+        self.sim = Simulation(number_of_floors=10)
+        self.ctrl = ElevatorBank(self.sim, self.sim.building.floors)
         self.first_elevator = self.ctrl.add_elevator()
-        self.person = Person()
-        self.person.schedule.add_event(timedelta(hours=7), building.floors[6])
-        self.person.schedule.add_event(timedelta(hours=12), building.floors[5])
-        self.person.schedule.add_event(timedelta(hours=16), building.floors[0])
-
-        self.sim = Simulation(building, [self.person], [self.ctrl])
-        self.env = self.sim.env
-        self.elevator_agent = self.sim.elevator_bank_agents[0].elevator_agents[0]
+        self.sim.elevator_banks.append(self.ctrl)
+        self.person = Person(self.sim)
+        self.person.schedule.add_event(timedelta(hours=7),  self.sim.building.floors[6])
+        self.person.schedule.add_event(timedelta(hours=12), self.sim.building.floors[5])
+        self.person.schedule.add_event(timedelta(hours=16), self.sim.building.floors[0])
+        self.sim.people.append(self.person)
 
     def tearDown(self):
         pass

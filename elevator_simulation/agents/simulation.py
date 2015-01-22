@@ -2,40 +2,38 @@
 # encoding: utf-8
 
 import simpy
-from elevator_simulation.agents.building import BuildingAgent
-from elevator_simulation.agents.person import PersonAgent
-from elevator_simulation.agents.elevator import ElevatorBankAgent
-
+from elevator_simulation.agents import Building
 
 class Simulation(object):
     """Holds all of the objects in the simulation."""
 
-    def __init__(self, building, people=[], elevator_banks=[], **kwargs):
+    EOD = 24*3600
+
+    def __init__(self, **kwargs):
         """Constructs a simulation from the models passed.
 
-        :param building Building: the model of the building to run the simulation
-        :param people list: list of the people in the simulation
-        :param elevator_banks list: list of the elevator banks (controllers in the simulation
+        :param number_of_floors int: Number of floors in the building (def: 10)
         """
-        self.env = simpy.Environment()
-        self.__building_model = building
-        self.__building_agent = BuildingAgent(self, building)
-        self.__person_models = people
-        self.__person_agents = [PersonAgent(self, person) for person in people]
-        self.__elevator_bank_models = elevator_banks
-        self.__elevator_bank_agents = [ElevatorBankAgent(self, elevator_bank) for elevator_bank in elevator_banks]
+        self.__env = simpy.Environment()
+        self.__building = Building(self, kwargs.get("number_of_floors", 10))
+        self.__people = []
+        self.__elevator_banks = []
 
     def run(self):
-        self.env.run(until=24*3600)
+        self.env.run(until=Simulation.EOD)
 
     @property
-    def building_agent(self):
-        return self.__building_agent
+    def env(self):
+        return self.__env
 
     @property
-    def person_agents(self):
-        return self.__person_agents
+    def building(self):
+        return self.__building
 
     @property
-    def elevator_bank_agents(self):
-        return self.__elevator_bank_agents
+    def people(self):
+        return self.__people
+
+    @property
+    def elevator_banks(self):
+        return self.__elevator_banks

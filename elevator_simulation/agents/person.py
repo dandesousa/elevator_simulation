@@ -3,6 +3,7 @@
 
 from datetime import timedelta
 from elevator_simulation.agents import AgentMixin
+from elevator_simulation.models import Person as PersonModel
 import logging
 
 
@@ -21,6 +22,7 @@ def call_strategy_random(elevator_banks):
 
 def default_trip_complete(trip):
     print(trip)
+
 
 class ElevatorTrip(object):
     __slots__ = ("elevator_called_secs", "elevator_arrived_secs", "travel_secs", "person",
@@ -43,22 +45,24 @@ class ElevatorTrip(object):
         return ",".join([str(getattr(self, attr)) for attr in ElevatorTrip.__slots__])
 
 
-class PersonAgent(AgentMixin):
+class Person(AgentMixin, PersonModel):
     """Behavior for person agent"""
     person_id = 0
 
     def __repr__(self):
         return "<Person(id={})>".format(self.person_id)
 
-    def __init__(self, sim, model, **kwargs):
+    def __init__(self, sim, **kwargs):
         """creates a person agent that defines how an individual behaves.
 
         :param elevator_call_strategy func: The strategy to use when deciding the elevator bank to use.
         :param trip_complete func: The function to invoke when elevator arrives (def: logs)
         """
-        AgentMixin.__init__(self, sim, model)
-        self.person_id = PersonAgent.person_id
-        PersonAgent.person_id += 1
+        AgentMixin.__init__(self, sim)
+        PersonModel.__init__(self, **kwargs)
+
+        self.person_id = Person.person_id
+        Person.person_id += 1
         self.action = self.env.process(self.run())
         self.call_strategy = kwargs.get("elevator_call_strategy", call_strategy_random)
         self.trip_complete = kwargs.get("trip_complete", default_trip_complete)
@@ -78,10 +82,10 @@ class PersonAgent(AgentMixin):
     def run(self):
         logger.debug("starting person agent for {}".format(self))
         # set the model location to the first floor
-        self.model.location = self.simulation.building_agent.model.floors[0]
+        self.location = self.simulation.building.floors[0]
         while True:
             now_td = timedelta(self.env.now)
-            next_event = self.model.schedule.next_event(now_td)
+            next_event = self.schedule.next_event(now_td)
             # if no event left, we are done
             if next_event is None:
                 logger.debug("done with {}".format(self))
@@ -97,23 +101,23 @@ class PersonAgent(AgentMixin):
             logger.debug("{} resuming at {}".format(self, self.env.now))
 
             trip = ElevatorTrip()
-            trip.person = self.model
+            trip.person = self
             trip.event = next_event
-            trip.start_location = self.model.location
+            trip.start_location = self.location
             trip.end_location = trip.event.location
-            trip.distance = self.model.location.distance(next_event.location)
-            trip.direction = self.model.location.direction(next_event.location)
+            trip.distance = self.location.distance(next_event.location)
+            trip.direction = self.location.direction(next_event.location)
             # TODO: correct later to check for stairs
             # determine whether to take the steps or call the elevator
             # if elevator, call elevator and wait
             trip.elevator_called_secs = self.env.now
-            elevator_banks = self.call_strategy(self.simulation.elevator_bank_agents)
+            elevator_banks = self.call_strategy(self.simulation.elevator_banks)
             logger.debug("{} chose {} elevator_bank(s) to call".format(self, len(elevator_banks)))
             for agent in elevator_banks:
                 agent.call(trip.start_location, trip.direction)
 
             # Wait until notified of elevator open door on floor
-            elevator_available = self.simulation.building_agent.elevator_available_event(trip.start_location)
+            elevator_available = self.simulation.building.elevator_available_event(trip.start_location)
             logger.debug("{} waiting until elevator is available".format(self))
             yield elevator_available
             logger.debug("{} saw elevator is available".format(self))
@@ -125,13 +129,13 @@ class PersonAgent(AgentMixin):
             elevator_agent.add_stop(trip.end_location)
 
             # TODO: need to wait for the elevator doors to open
-            while elevator_agent.model.location != trip.end_location:
+            while elevator_agent.location != trip.end_location:
                 yield self.__floor_reached_event
             elevator_agent.exit(self)
 
             trip.travel_secs = self.env.now - trip.elevator_arrived_secs
-            self.model.location = trip.end_location  # we reached our location, yay!
+            self.location = trip.end_location  # we reached our location, yay!
             self.trip_complete(trip)
 
             # TODO: ELEVATOR: check that we ONLY stop when we are going in the
-                # direction of the user (we'll get them on the way back)
+            # direction of the user (we'll get them on the way back)

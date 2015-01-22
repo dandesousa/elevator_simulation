@@ -46,7 +46,7 @@ class ElevatorBank(object):
         self.__floors = floors
         self.__elevators = set()
         self.__dispatch_strategy = kwargs.get("dispatch_strategy", nearest_elevator_dispatch_strategy)
-        self.__elevator_cls = kwargs.get("elevator_cls", Elevator)
+        self._elevator_cls = kwargs.get("elevator_cls", Elevator)
 
     @property
     def floors(self):
@@ -54,9 +54,18 @@ class ElevatorBank(object):
         return self.__floors
 
     @property
+    def elevator_type(self):
+        """the class or type of elevator that will be created by this elevator bank"""
+        return self.__elevator_cls
+
+    @property
     def elevators(self):
         """Returns a tuple of the elevators in the elevator bank"""
         return tuple(self.__elevators)
+
+    def _create_elevator(self, **kwargs):
+        """wrapper for creating an elevator object"""
+        return self._elevator_cls(self.floors, **kwargs)
 
     def add_elevator(self, **kwargs):
         """Adds an eleavtor to the elevator bank of this controller.
@@ -65,7 +74,7 @@ class ElevatorBank(object):
 
         :rtype Elevator: Returns the elevator that was created
         """
-        elevator = self.__elevator_cls(self.floors, **kwargs)
+        elevator = self._create_elevator(**kwargs)
         self.__elevators.add(elevator)
         return elevator
 
