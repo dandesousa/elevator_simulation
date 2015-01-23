@@ -2,6 +2,8 @@
 # encoding: utf-8
 
 from datetime import timedelta
+from elevator_simulation.data import ElevatorTrip
+from elevator_simulation.data import to_csv
 from elevator_simulation.agents import AgentMixin
 from elevator_simulation.models import Person as PersonModel
 import logging
@@ -18,31 +20,6 @@ def call_strategy_random(elevator_banks):
     import random
     bank_index = random.randint(0, len(elevator_banks)-1)
     return (elevator_banks[bank_index], )
-
-
-def default_trip_complete(trip):
-    print(trip)
-
-
-class ElevatorTrip(object):
-    __slots__ = ("elevator_called_secs", "elevator_arrived_secs", "travel_secs", "person",
-                 "start_location", "end_location", "event", "direction", "distance")
-    """Docstring for ElevatorTrip. """
-
-    def __init__(self):
-        """TODO: to be defined1. """
-        self.elevator_called_secs = None
-        self.elevator_arrived_secs = None
-        self.travel_secs = None
-        self.person = None
-        self.start_location = None
-        self.end_location = None
-        self.event = None
-        self.direction = None
-        self.distance = None
-
-    def __str__(self):
-        return ",".join([str(getattr(self, attr)) for attr in ElevatorTrip.__slots__])
 
 
 class Person(AgentMixin, PersonModel):
@@ -65,7 +42,7 @@ class Person(AgentMixin, PersonModel):
         Person.person_id += 1
         self.action = self.env.process(self.run())
         self.call_strategy = kwargs.get("elevator_call_strategy", call_strategy_random)
-        self.trip_complete = kwargs.get("trip_complete", default_trip_complete)
+        self.trip_complete = kwargs.get("trip_complete", lambda obj: print(to_csv(obj)))
 
     def run(self):
         logger.debug("starting person agent for {}".format(self))
