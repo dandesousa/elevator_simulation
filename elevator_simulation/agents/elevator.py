@@ -25,11 +25,9 @@ class ElevatorBank(AgentMixin, ElevatorBankModel):
         kwargs["elevator_cls"] = Elevator  # elevator class to instantiate on calls to add_elevator
         ElevatorBankModel.__init__(self, floors, **kwargs)
 
-        self.elevator_called = self.env.event()
-        self.elevator_agents = [ElevatorAgent(sim, elevator) for elevator in self.elevators]
-
     def _create_elevator(self, **kwargs):
         """wrapper for creating an elevator object"""
+        kwargs["elevator_bank"] = self
         return self._elevator_cls(self.simulation, self.floors, **kwargs)
 
 
@@ -38,6 +36,7 @@ class Elevator(AgentMixin, ElevatorModel):
     def __init__(self, sim, floors, **kwargs):
         """Constructs an elevator agent for simpy
 
+        :param elevator_bank ElevatorBank: the owning elevator bank
         :param elevator_open_secs int: seconds it takes to open the elevator doors.
         :param elevator_close_secs int: seconds it takes to close the elevator doors.
         :param elevator_wait_secs int: seconds between the elevator doors opening and closing.
@@ -46,6 +45,7 @@ class Elevator(AgentMixin, ElevatorModel):
         AgentMixin.__init__(self, sim)
         ElevatorModel.__init__(self, floors, **kwargs)
         self.action = self.env.process(self.run())
+        self.__elevator_bank = kwargs["elevator_bank"]
 
         # events in this simulation
         self.__new_stop_added = self.env.event()
@@ -95,7 +95,7 @@ class Elevator(AgentMixin, ElevatorModel):
                 yield self.env.timeout(self.elevator_travel_secs)
                 self.location = self.next_location
                 for person in self.passengers:
-                    person.notify_floor_reached(self.location)
+                    person.notify_event("floor_reached", self.location)
                 logger.debug("done adv {}".format(self.env.now))
             else:
                 logger.debug("elevator is located at a stop location")
@@ -121,7 +121,7 @@ class Elevator(AgentMixin, ElevatorModel):
         self.open_doors()
         self.remove_stop(self.location)
         for person in self.passengers:
-            person.notify_elevator_door_open(self)
+            person.notify_event("elevator_door_open", self)
 
     def __close_doors(self):
         yield self.env.timeout(self.elevator_close_secs)

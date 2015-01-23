@@ -58,7 +58,7 @@ class Person(AgentMixin, PersonModel):
         :param elevator_call_strategy func: The strategy to use when deciding the elevator bank to use.
         :param trip_complete func: The function to invoke when elevator arrives (def: logs)
         """
-        AgentMixin.__init__(self, sim)
+        AgentMixin.__init__(self, sim, events=["floor_reached", "elevator_door_open"])
         PersonModel.__init__(self, **kwargs)
 
         self.person_id = Person.person_id
@@ -66,30 +66,6 @@ class Person(AgentMixin, PersonModel):
         self.action = self.env.process(self.run())
         self.call_strategy = kwargs.get("elevator_call_strategy", call_strategy_random)
         self.trip_complete = kwargs.get("trip_complete", default_trip_complete)
-
-        # events we depend upon
-        self.__floor_reached_event = self.env.event()
-        self.__floor_reached_callback = kwargs.get("floor_reached_callback", None)
-        self.notify_floor_reached(None)
-        self.__elevator_door_open_event = self.env.event()
-
-    def notify_elevator_door_open(self, elevator):
-        """notifies the person that the elevator door opened.
-        """
-        event = self.__elevator_door_open_event
-        self.__elevator_door_open_event = self.env.event()
-        event.succeed(elevator)
-
-    def notify_floor_reached(self, floor):
-        """notifies the person that the floor was reached.
-
-        :param floor Floor: the floor that was reached.
-        """
-        event = self.__floor_reached_event
-        self.__floor_reached_event = self.env.event()
-        if self.__floor_reached_callback:
-            self.__floor_reached_event.callbacks.append(self.__floor_reached_callback)
-        event.succeed(floor)
 
     def run(self):
         logger.debug("starting person agent for {}".format(self))
@@ -142,7 +118,7 @@ class Person(AgentMixin, PersonModel):
 
             # TODO: need to wait for the elevator doors to open
             while elevator_agent.location != trip.end_location:
-                yield self.__elevator_door_open_event
+                yield self.event("elevator_door_open")
             elevator_agent.exit(self)
 
             trip.travel_secs = self.env.now - trip.elevator_arrived_secs
