@@ -102,14 +102,14 @@ class Person(AgentMixin, PersonModel):
             elevator_banks = self.call_strategy(self.simulation.elevator_banks)
             logger.debug("{} chose {} elevator_bank(s) to call".format(self, len(elevator_banks)))
             for agent in elevator_banks:
+                agent.wait(self, trip.start_location, trip.direction)
                 agent.call_to(trip.start_location, trip.direction)
 
             # Wait until notified of elevator open door on floor
-            elevator_available = self.simulation.building.elevator_available_event(trip.start_location)
-            logger.debug("{} waiting until elevator is available".format(self))
-            yield elevator_available
-            logger.debug("{} saw elevator is available".format(self))
-            elevator_agent = elevator_available.value
+            event = self.event("elevator_door_open")
+            yield event
+            elevator_agent = event.value
+            agent.stop_waiting(self, trip.start_location, trip.direction)
             trip.elevator_arrived_secs = self.env.now
 
             # TODO: update capacity

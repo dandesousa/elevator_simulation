@@ -21,9 +21,16 @@ class ElevatorBank(AgentMixin, ElevatorBankModel):
         For example, the agent controls how quickly the elevator doors open and close, how quickly the elevators can
         move.
         """
-        AgentMixin.__init__(self, sim)
+        AgentMixin.__init__(self, sim, events=["elevator_door_open"])
         kwargs["elevator_cls"] = Elevator  # elevator class to instantiate on calls to add_elevator
         ElevatorBankModel.__init__(self, floors, **kwargs)
+
+        self.register_event_callback("elevator_door_open", self.__elevator_door_open)
+
+    def __elevator_door_open(self, event):
+        elevator = event.value
+        for person in self.waiting_passengers(elevator.location, elevator.next_direction):
+            person.notify_event("elevator_door_open", elevator)
 
     def _create_elevator(self, **kwargs):
         """wrapper for creating an elevator object"""
@@ -55,14 +62,6 @@ class Elevator(AgentMixin, ElevatorModel):
         self.elevator_wait_secs = kwargs.get("elevator_wait_secs", 5)
         self.elevator_travel_secs = kwargs.get("elevator_travel_secs", 7)
 
-
-    # TODO this probably isnt safe, delete later and refactor test
-    def __reset_event(self, event):
-        ev = self.env.event()
-        ev.callbacks = event.callbacks
-        return ev
-
-
     def run(self):
         while True:
             # wait until we add a new stop to the elevator
@@ -76,19 +75,9 @@ class Elevator(AgentMixin, ElevatorModel):
         """moves toward the destination until it runs out of stops"""
         while self.stops:
             logger.debug("elevator at {} must decide to move".format(self.location))
-            direction = self.direction
             if self.location not in self.stops:
                 logger.debug("elevator is not at one of the stops: {}".format(self.stops))
-                moving_towards_stop = not all([self.moving_away(floor) for floor in self.stops])
-                if not direction:
-                    self.direction = 1
-                    moving_towards_stop = not all([self.moving_away(floor) for floor in self.stops])
-                    if not moving_towards_stop:
-                        self.direction = -1
-                elif direction and moving_towards_stop:
-                    pass  # continue moving towards next location
-                else:  # we need to switch directions
-                    self.direction *= -1
+                self.direction = self.next_direction
 
                 # move to the next floor
                 logger.debug("adv {}".format(self.env.now))
@@ -99,15 +88,12 @@ class Elevator(AgentMixin, ElevatorModel):
                 logger.debug("done adv {}".format(self.env.now))
             else:
                 logger.debug("elevator is located at a stop location")
-                direction = 0  # don't move if we are at the stop
 
             if self.location in self.stops:
                 logger.debug("elevator is at stop {}, opening doors".format(self.location))
                 logger.debug(self.env.now)
                 yield from self.__open_doors()
                 logger.debug(self.env.now)
-                self.simulation.building.elevator_available_event(self.location).succeed(self)
-                self.simulation.building.reset_elevator_available_event(self.location)
                 yield from self.wait_for_passengers()
                 yield from self.__close_doors()
 
@@ -122,6 +108,7 @@ class Elevator(AgentMixin, ElevatorModel):
         self.remove_stop(self.location)
         for person in self.passengers:
             person.notify_event("elevator_door_open", self)
+        self.__elevator_bank.notify_event("elevator_door_open", self)
 
     def __close_doors(self):
         yield self.env.timeout(self.elevator_close_secs)

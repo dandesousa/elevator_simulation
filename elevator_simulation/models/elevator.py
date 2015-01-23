@@ -49,6 +49,27 @@ class ElevatorBank(object):
         self.__elevators = set()
         self.__dispatch_strategy = kwargs.get("dispatch_strategy", nearest_elevator_dispatch_strategy)
         self._elevator_cls = kwargs.get("elevator_cls", Elevator)
+        self.__wait_list_up = {floor: set() for floor in self.__floors}
+        self.__wait_list_down = {floor: set() for floor in self.__floors}
+
+    def __wait_set(self, floor, direction):
+        if not direction:
+            raise ValueError("Not a valid direction: {}".format(direction))
+        elif direction > 0:
+            return self.__wait_list_up[floor]
+        elif direction < 0:
+            return self.__wait_list_down[floor]
+        else:
+            raise ValueError("Not a valid direction: {}".format(direction))
+
+    def wait(self, person, floor, direction):
+        self.__wait_set(floor, direction).add(person)
+
+    def stop_waiting(self, person, floor, direction):
+        self.__wait_set(floor, direction).remove(person)
+
+    def waiting_passengers(self, floor, direction):
+        return frozenset(self.__wait_set(floor, direction))
 
     @property
     def floors(self):
@@ -176,6 +197,28 @@ class Elevator(object):
         if value not in valid_values:
             raise ValueError("Direction must be one of the following values: {}".format(valid_values))
         self.__direction = value
+
+    @property
+    def next_direction(self):
+        """determines the next direction the elevator should travel.
+
+        it should continue to travel in its current direction unless that is not in the direction of any stops.
+        """
+        if self.location == self.__valid_floors[0]:
+            return 1
+        elif self.location == self.__valid_floors[-1]:
+            return -1
+
+        if not self.direction:  # move towards the first stop
+            if not self.stops or self.location in self.stops:
+                return 0
+            return 1 if self.distance(list(self.stops)[0]) > 0 else -1
+        else:
+            moving_towards_stop = not all([self.moving_away(floor) for floor in self.stops])
+            if moving_towards_stop:
+                return self.direction
+            else:
+                return -1 * self.direction
 
     @property
     def location(self):
