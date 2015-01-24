@@ -3,8 +3,31 @@
 
 import json
 import os
+import tempfile
 import unittest
 from elevator_simulation.readers.json import read_simulation
+from elevator_simulation.generators.json import write_simulation
+
+
+class TestJSONGenerator(unittest.TestCase):
+    """Test that the json generator and reader is able to read json files correcly."""
+
+    def setUp(self):
+        test_data_path = os.path.join(os.path.dirname(__file__), "data")
+        self.simple_test_file = os.path.join(test_data_path, "simple.json")
+        self.simulation = read_simulation(self.simple_test_file)
+
+    def tearDown(self):
+        pass
+
+    def test_generator_uuid(self):
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as fh:
+            write_simulation(self.simulation, fh)
+
+        sim = read_simulation(fh.name)
+        self.assertEqual(self.simulation, sim)
+        sim2 = read_simulation(self.simple_test_file)
+        self.assertNotEqual(sim, sim2)
 
 
 class TestJSONReader(unittest.TestCase):

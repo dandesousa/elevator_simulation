@@ -19,6 +19,9 @@ class Simulation(object):
         self.__people = []
         self.__elevator_banks = []
 
+    def __eq__(self, obj):
+        return self.building == obj.building and self.people == obj.people and self.elevator_banks == obj.elevator_banks
+
     def run(self):
         self.env.run(until=Simulation.EOD)
 

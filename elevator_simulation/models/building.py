@@ -9,6 +9,12 @@ class Floor(object):
         """intializes a floor with a level label"""
         self._level = level
 
+    def __hash__(self):
+        return self.level
+
+    def __eq__(self, obj):
+        return self.level == obj.level
+
     @property
     def level(self):
         """integer identifier indicates the height of the floor relative to other floors"""
@@ -37,6 +43,9 @@ class Building(object):
     def __init__(self):
         """intializes a building with an empty set of floors"""
         self.__floors = tuple()
+
+    def __eq__(self, obj):
+        return all([self.floors[i] == obj.floors[i] for i in range(len(self.floors))])
 
     @property
     def floors(self):

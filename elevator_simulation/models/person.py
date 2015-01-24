@@ -4,6 +4,7 @@
 
 from collections import namedtuple
 from datetime import timedelta
+from elevator_simulation.models import IdentMixin
 from elevator_simulation.models.building import Floor
 
 Event = namedtuple("Event", "start_time location description")
@@ -25,6 +26,9 @@ class Schedule(object):
     """
     def __init__(self):
         self.__events = []
+
+    def __eq__(self, obj):
+        return all([self.events[i] == obj.events[i] for i in range(len(self.events))])
 
     @property
     def events(self):
@@ -58,7 +62,7 @@ class Schedule(object):
         self.__events.sort()  # this is OK but we really should do an in place insert if we care about performance
 
 
-class Person(object):
+class Person(IdentMixin):
     """Class to model a person with a work schedule.
     """
     def __init__(self, **kwargs):
@@ -66,9 +70,14 @@ class Person(object):
 
         :param fitness int: combination measure of fitness and willingness to take the stairs (def: 1)
         """
+        IdentMixin.__init__(self, **kwargs)
         self.__schedule = Schedule()
         self.__location = None
         self.__fitness = kwargs.get("fitness", 1)
+
+    @property
+    def name(self):
+        return self.__name
 
     @property
     def max_stair_levels_down(self):

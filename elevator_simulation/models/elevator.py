@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from elevator_simulation.models import IdentMixin
 from elevator_simulation.models import Floor
 
 
@@ -34,7 +35,7 @@ def nearest_elevator_dispatch_strategy(elevator_list, floor_list, floor, directi
     return result[0]
 
 
-class ElevatorBank(object):
+class ElevatorBank(IdentMixin):
     """class to model an elevator bank controller"""
 
     def __init__(self, floors, **kwargs):
@@ -45,6 +46,7 @@ class ElevatorBank(object):
         :note: dispatch strategy has a significant impact on elevator efficiency, by default it will
         use the nearest elevator strategy.
         """
+        IdentMixin.__init__(self, **kwargs)
         self.__floors = floors
         self.__elevators = set()
         self.__dispatch_strategy = kwargs.get("dispatch_strategy", nearest_elevator_dispatch_strategy)
@@ -117,7 +119,7 @@ class ElevatorBank(object):
     # TODO: contains for elevator
 
 
-class Elevator(object):
+class Elevator(IdentMixin):
     """class to model an elevator"""
 
     def __init__(self, floors, **kwargs):
@@ -126,6 +128,7 @@ class Elevator(object):
         :param capacity int: the maximum number of people allowed on this elevator (def: 10)
         :param starting_location floor: the initial starting location for this elevator (def: 1st floor)
         """
+        IdentMixin.__init__(self, **kwargs)
         self.__valid_floors = floors
         self.__stops = set()
         self.__capacity = kwargs.get("capacity", 10)
