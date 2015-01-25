@@ -20,6 +20,21 @@ class TestElevatorAgent(unittest.TestCase):
         pass
 
     # TODO: add a test for stopping at each floor
+    def test_elevator_idle(self):
+        """tests that elevator stays where it is, when it has no stops"""
+        self.assertEqual(1, self.elevator.location.level)
+        self.sim.env.run(until=10000)
+        self.assertEqual(1, self.elevator.location.level)
+        self.elevator.add_stop(self.sim.building.floors[3])
+        self.sim.env.run(until=20000)
+        self.assertEqual(4, self.elevator.location.level)
+        self.sim.env.run(until=30000)
+        self.assertEqual(4, self.elevator.location.level)
+        self.elevator.add_stop(self.sim.building.floors[7])
+        self.sim.env.run(until=35000)
+        self.assertEqual(8, self.elevator.location.level)
+        self.sim.env.run(until=55000)
+        self.assertEqual(8, self.elevator.location.level)
 
     def test_enter_exit_elevator(self):
         person = Person(self.sim)
