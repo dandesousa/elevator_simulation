@@ -60,10 +60,10 @@ class Person(AgentMixin, PersonModel):
             logger.debug("{} resuming at {}".format(self, self.env.now))
 
             trip = ElevatorTrip()
-            trip.person = self
-            trip.event = next_event
-            trip.start_location = self.location
-            trip.end_location = trip.event.location
+            trip.person = self.uuid
+            trip.start = self.location.level
+            trip.destination = next_event.location.level
+            trip.description = next_event.description
             trip.distance = self.location.distance(next_event.location)
             trip.direction = self.location.direction(next_event.location)
             # TODO: correct later to check for stairs
@@ -73,27 +73,27 @@ class Person(AgentMixin, PersonModel):
             elevator_banks = self.call_strategy(self.simulation.elevator_banks)
             logger.debug("{} chose {} elevator_bank(s) to call".format(self, len(elevator_banks)))
             for agent in elevator_banks:
-                agent.wait(self, trip.start_location, trip.direction)
-                agent.call_to(trip.start_location, trip.direction)
+                agent.wait(self, self.location, trip.direction)
+                agent.call_to(self.location, trip.direction)
 
             # Wait until notified of elevator open door on floor
             event = self.event("elevator_door_open")
             yield event
             elevator_agent = event.value
-            agent.stop_waiting(self, trip.start_location, trip.direction)
+            agent.stop_waiting(self, self.location, trip.direction)
             trip.elevator_arrived_secs = self.env.now
 
             # TODO: update capacity
             elevator_agent.enter(self)
-            elevator_agent.add_stop(trip.end_location)
+            elevator_agent.add_stop(next_event.location)
 
             # TODO: need to wait for the elevator doors to open
-            while elevator_agent.location != trip.end_location:
+            while elevator_agent.location != next_event.location:
                 yield self.event("elevator_door_open")
             elevator_agent.exit(self)
 
             trip.travel_secs = self.env.now - trip.elevator_arrived_secs
-            self.location = trip.end_location  # we reached our location, yay!
+            self.location = next_event.location  # we reached our location, yay!
             self.trip_complete(trip)
 
             # TODO: ELEVATOR: check that we ONLY stop when we are going in the

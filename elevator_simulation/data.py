@@ -8,9 +8,9 @@ class ElevatorTrip(object):
                  "elevator_arrived_secs",
                  "travel_secs",
                  "person",
-                 "start_location",
-                 "end_location",
-                 "event",
+                 "start",
+                 "destination",
+                 "description",
                  "direction",
                  "distance")
 
@@ -19,9 +19,9 @@ class ElevatorTrip(object):
         self.elevator_arrived_secs = None
         self.travel_secs = None
         self.person = None
-        self.start_location = None
-        self.end_location = None
-        self.event = None
+        self.start = None
+        self.destination = None
+        self.description = None
         self.direction = None
         self.distance = None
 
