@@ -20,6 +20,15 @@ class TestElevatorBank(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_elevator_capacity(self):
+        """tests that elevator capacity rules are enforced"""
+        self.first_floor_elevator.open_doors()
+        for i in range(self.first_floor_elevator.capacity):
+            self.first_floor_elevator.enter(object())
+
+        with self.assertRaisesRegexp(RuntimeError, "capacity"):
+            self.first_floor_elevator.enter(object())
+
     def test_add_elevator(self):
         """tests adding elevator logic"""
         self.assertEqual(2, len(self.ctrl.elevators))

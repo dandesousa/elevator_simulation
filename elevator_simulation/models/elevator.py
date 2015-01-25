@@ -143,6 +143,11 @@ class Elevator(IdentMixin):
         return self.__capacity
 
     @property
+    def full(self):
+        """returns true if the elevator at maximum capacity"""
+        return len(self.passengers) >= self.capacity
+
+    @property
     def passengers(self):
         """the passengers currently in the elevator"""
         return frozenset(self.__passengers)
@@ -164,6 +169,8 @@ class Elevator(IdentMixin):
 
     def enter(self, person):
         if self.is_open:
+            if self.full:
+                raise RuntimeError("Unable to enter elevator, would exceed capacity of '{}'".format(self.capacity))
             self.__passengers.add(person)
         else:
             raise RuntimeError("Unable to enter elevator, doors are closed")

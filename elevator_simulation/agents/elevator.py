@@ -72,7 +72,7 @@ class Elevator(AgentMixin, ElevatorModel):
         """moves toward the destination until it runs out of stops"""
         while self.stops:
             logger.debug("elevator at {} must decide to move".format(self.location))
-            if self.location not in self.stops:
+            if self.full or self.location not in self.stops:
                 logger.debug("elevator is not at one of the stops: {}".format(self.stops))
                 self.direction = self.next_direction
 
