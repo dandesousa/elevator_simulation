@@ -37,14 +37,14 @@ def main():
 
     # travel point plot
     p = ggplot(df, aes(x='elevator_called_secs', y='travel_secs')) + geom_point() + xlab('seconds since midnight') + ylab('travel time (seconds)') + ggtitle("All Elevator Trips")
-    pn = os.path.join(args.output_dir, "travel_time_point_{}.png".format(args.file_suffix))
+    pn = os.path.join(args.output_dir, "travel_time_point{}.png".format(args.file_suffix))
     logger.info("generating plot {}".format(pn))
     ggsave(p, pn)
 
 
     # travel point plot by distance
     p = ggplot(df, aes(x='elevator_called_secs', y='travel_secs')) + geom_point() + xlab('seconds since midnight') + ylab('travel time (seconds)') + facet_wrap('distance') + ggtitle("All Elevator Trips")
-    pn = os.path.join(args.output_dir, "travel_time_point_by_distance_{}.png".format(args.file_suffix))
+    pn = os.path.join(args.output_dir, "travel_time_point_by_distance{}.png".format(args.file_suffix))
     logger.info("generating plot {}".format(pn))
     ggsave(p, pn)
 
