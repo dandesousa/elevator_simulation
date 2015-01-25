@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class ElevatorBank(AgentMixin, ElevatorBankModel):
     """Docstring for ElevatorControllerAgent. """
 
-    def __init__(self, sim, floors, **kwargs):
+    def __init__(self, sim, **kwargs):
         """Constructs an elevator controller agent for simpy.
 
         The elevator controller agent has information about how the elevator controller operates in the simulation.
@@ -23,7 +23,7 @@ class ElevatorBank(AgentMixin, ElevatorBankModel):
         """
         AgentMixin.__init__(self, sim, events=["elevator_door_open"])
         kwargs["elevator_cls"] = Elevator  # elevator class to instantiate on calls to add_elevator
-        ElevatorBankModel.__init__(self, floors, **kwargs)
+        ElevatorBankModel.__init__(self, sim.building.floors, **kwargs)
 
         self.register_event_callback("elevator_door_open", self.__elevator_door_open)
 

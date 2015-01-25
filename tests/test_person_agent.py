@@ -13,7 +13,7 @@ class TestElevatorAgent(unittest.TestCase):
     def setUp(self):
         logging.basicConfig(format="%(levelname)s %(asctime)s: %(message)s", level=logging.DEBUG)
         self.sim = Simulation(number_of_floors=10)
-        self.ctrl = ElevatorBank(self.sim, self.sim.building.floors)
+        self.ctrl = ElevatorBank(self.sim)
         self.first_elevator = self.ctrl.add_elevator()
         self.sim.elevator_banks.append(self.ctrl)
         self.person = Person(self.sim)

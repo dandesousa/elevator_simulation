@@ -30,7 +30,7 @@ def read_simulation(filename):
 
         elevator_data = data["elevator_banks"]
         for elevator_bank in elevator_data:
-            ctrl = ElevatorBank(simulation, simulation.building.floors, **elevator_bank)  # TODO: read the strategy optionally?
+            ctrl = ElevatorBank(simulation, **elevator_bank)  # TODO: read the strategy optionally?
             elevator_arg_list = elevator_bank["elevators"]
             for elevator_args in elevator_arg_list:
                 ctrl.add_elevator(**elevator_args)

@@ -11,7 +11,7 @@ class TestElevatorAgent(unittest.TestCase):
 
     def setUp(self):
         self.sim = Simulation(number_of_floors=10)
-        self.elevator_bank = ElevatorBank(self.sim, self.sim.building.floors)
+        self.elevator_bank = ElevatorBank(self.sim)
         self.elevator = self.elevator_bank.add_elevator()
 
     def tearDown(self):
