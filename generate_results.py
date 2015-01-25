@@ -16,6 +16,7 @@ def get_args():
     parser = ArgumentParser(description="generates results for a run of the simulation")
     parser.add_argument("-v", "--verbose", action="count", help="the logging verbosity (more gives more detail)")
     parser.add_argument("-i", "--input_file", required=True, help="path to the simulation results csv file.")
+    parser.add_argument("--file_suffix", default="", help="file suffix to add before the extension and after each generated file.")
     parser.add_argument("-d", "--output_dir", default=os.path.join(script_directory, "sim_results"), help="path to the output directory where plots should go (default: %(default)s)")
     args = parser.parse_args()
 
@@ -35,10 +36,18 @@ def main():
     df = pd.read_csv(args.input_file)
 
     # travel point plot
-    p = ggplot(df, aes(x='elevator_called_secs', y='travel_secs')) + geom_point() + xlab('seconds since midnight') + ylab('travel time (seconds)') + ggtitle("Travel Time")
-    pn = os.path.join(args.output_dir, "travel_time_point.png")
+    p = ggplot(df, aes(x='elevator_called_secs', y='travel_secs')) + geom_point() + xlab('seconds since midnight') + ylab('travel time (seconds)') + ggtitle("All Elevator Trips")
+    pn = os.path.join(args.output_dir, "travel_time_point_{}.png".format(args.file_suffix))
     logger.info("generating plot {}".format(pn))
     ggsave(p, pn)
+
+
+    # travel point plot by distance
+    p = ggplot(df, aes(x='elevator_called_secs', y='travel_secs')) + geom_point() + xlab('seconds since midnight') + ylab('travel time (seconds)') + facet_wrap('distance') + ggtitle("All Elevator Trips")
+    pn = os.path.join(args.output_dir, "travel_time_point_by_distance_{}.png".format(args.file_suffix))
+    logger.info("generating plot {}".format(pn))
+    ggsave(p, pn)
+
 
 
 if __name__ == '__main__':
