@@ -49,13 +49,11 @@ class Elevator(AgentMixin, ElevatorModel):
         :param elevator_wait_secs int: seconds between the elevator doors opening and closing.
         :param elevator_travel_secs int: number of seconds to move between two levels in the building.
         """
-        AgentMixin.__init__(self, sim)
+        AgentMixin.__init__(self, sim, events=["new_stop_added"])
         ElevatorModel.__init__(self, floors, **kwargs)
         self.action = self.env.process(self.run())
         self.__elevator_bank = kwargs["elevator_bank"]
 
-        # events in this simulation
-        self.__new_stop_added = self.env.event()
 
         self.elevator_open_secs = kwargs.get("elevator_open_secs", 5)
         self.elevator_close_secs = kwargs.get("elevator_close_secs", 5)
@@ -65,8 +63,7 @@ class Elevator(AgentMixin, ElevatorModel):
     def run(self):
         while True:
             # wait until we add a new stop to the elevator
-            yield self.__new_stop_added
-            self.__new_stop_added = self.env.event()
+            yield self.event("new_stop_added")
 
             # moves in the direction of stop
             yield from self.move()
@@ -124,4 +121,4 @@ class Elevator(AgentMixin, ElevatorModel):
     def add_stop(self, floor, add=True):
         """adds a new stop to the elevator and signals that it should start moving."""
         ElevatorModel.add_stop(self, floor)
-        self.__new_stop_added.succeed()
+        self.notify_event("new_stop_added")

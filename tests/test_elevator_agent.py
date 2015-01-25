@@ -3,6 +3,7 @@
 
 import simpy
 import unittest
+from datetime import timedelta
 from elevator_simulation.agents import Simulation, ElevatorBank, Building, Person
 
 
@@ -12,6 +13,7 @@ class TestElevatorAgent(unittest.TestCase):
     def setUp(self):
         self.sim = Simulation(number_of_floors=10)
         self.elevator_bank = ElevatorBank(self.sim)
+        self.sim.elevator_banks.append(self.elevator_bank)
         self.elevator = self.elevator_bank.add_elevator()
 
     def tearDown(self):
@@ -45,16 +47,13 @@ class TestElevatorAgent(unittest.TestCase):
         def test_floor(event):
             nonlocal num_tests
             now = self.sim.env.now
-            expected_level = int(now / travel_time) + 1
+            expected_level = int((now - self.elevator.elevator_open_secs - self.elevator.elevator_close_secs - self.elevator.elevator_wait_secs) / travel_time) + 1
             self.assertEqual(expected_level, self.elevator.location.level)
             num_tests += 1
 
         person = Person(self.sim)
+        person.schedule.add_event(timedelta(seconds=0), self.elevator_bank.floors[-1])
         person.register_event_callback("floor_reached", test_floor)
-        self.elevator.open_doors()
-        self.elevator.enter(person)
-        self.elevator.add_stop(self.elevator_bank.floors[-1])
-        self.sim.env.run(until=total_run_time)
-        self.assertEqual(total_run_time, self.sim.env.now)
+        self.sim.run()
         self.assertEqual(num_tests, len(self.elevator_bank.floors))
         self.assertFalse(self.elevator.stops)

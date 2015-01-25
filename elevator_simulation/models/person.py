@@ -38,7 +38,7 @@ class Schedule(object):
     def next_event(self, now):
         """tells us the next event starting from the given time."""
         for event in self.events:
-            if now < event.start_time:
+            if now <= event.start_time:
                 return event
         return None
 
