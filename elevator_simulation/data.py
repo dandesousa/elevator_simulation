@@ -25,6 +25,8 @@ class ElevatorTrip(object):
         self.direction = None
         self.distance = None
 
+def to_csv_header(cls):
+    return ",".join([str(attr) for attr in cls.__slots__])
 
 def to_csv(obj):
     """returns the slotted object as a comma separated value string"""

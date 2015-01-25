@@ -3,7 +3,8 @@
 
 
 import logging
-from elevator_simulation.agents.simulation import Simulation
+from elevator_simulation.agents import Simulation
+from elevator_simulation.data import to_csv_header, ElevatorTrip
 from elevator_simulation.readers.json import read_simulation
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ def main():
     args = get_args()
 
     simulation = read_simulation(args.input_file)
+    print(to_csv_header(ElevatorTrip))
     simulation.run()
 
 
