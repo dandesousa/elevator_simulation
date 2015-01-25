@@ -39,9 +39,21 @@ class TestPersonAgent(unittest.TestCase):
         self.sim.env.run(until=until_time)
         self.assertEqual(4, num_tests)
 
-    #def test_arrives_at_work_level(self):
-    #    """tests that we arrive at the work level"""
-    #    until_time = timedelta(hours=8).total_seconds()
-    #    self.sim.env.run(until=until_time)
-    #    self.assertEqual(self.first_elevator.location, self.person.schedule.events[0].location)
-    #    self.assertEqual(self.person.location, self.person.schedule.events[0].location)
+    def test_arrives_at_work_level(self):
+        """tests that we arrive at the work level"""
+        until_time = timedelta(hours=8).total_seconds()
+        self.sim.env.run(until=until_time)
+        self.assertEqual(self.first_elevator.location, self.person.schedule.events[0].location)
+        self.assertEqual(self.person.location, self.person.schedule.events[0].location)
+
+    def test_arrives_at_lunch_level(self):
+        until_time = timedelta(hours=13).total_seconds()
+        self.sim.env.run(until=until_time)
+        self.assertEqual(self.first_elevator.location, self.person.schedule.events[1].location)
+        self.assertEqual(self.person.location, self.person.schedule.events[1].location)
+
+    def test_arrives_work_done_level(self):
+        until_time = timedelta(hours=17).total_seconds()
+        self.sim.env.run(until=until_time)
+        self.assertEqual(self.first_elevator.location, self.person.schedule.events[2].location)
+        self.assertEqual(self.person.location, self.person.schedule.events[2].location)

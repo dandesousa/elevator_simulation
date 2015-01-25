@@ -31,7 +31,7 @@ class Person(AgentMixin, PersonModel):
         :param elevator_call_strategy func: The strategy to use when deciding the elevator bank to use.
         :param trip_complete func: The function to invoke when elevator arrives (def: logs)
         """
-        AgentMixin.__init__(self, sim, events=["floor_reached", "elevator_door_open"])
+        AgentMixin.__init__(self, sim, events=["floor_reached", "elevator_door_open", "elevator_moving_on"])
         PersonModel.__init__(self, **kwargs)
 
         self.action = self.env.process(self.run())
@@ -43,7 +43,7 @@ class Person(AgentMixin, PersonModel):
         # set the model location to the first floor
         self.location = self.simulation.building.floors[0]
         while True:
-            now_td = timedelta(self.env.now)
+            now_td = timedelta(seconds=self.env.now)
             next_event = self.schedule.next_event(now_td)
             # if no event left, we are done
             if next_event is None:
@@ -58,6 +58,11 @@ class Person(AgentMixin, PersonModel):
             logger.debug("{} waiting until {}".format(self, time_until_next_event.total_seconds()))
             yield self.env.timeout(time_until_next_event.total_seconds())
             logger.debug("{} resuming at {}".format(self, self.env.now))
+
+            if next_event.location == self.location:
+                logger.debug("event detected on current location -- skipping elevator")
+                yield self.env.timeout(0.001)
+                continue
 
             trip = ElevatorTrip()
             trip.person = self.uuid
@@ -81,19 +86,27 @@ class Person(AgentMixin, PersonModel):
                 # Wait until notified of elevator open door on floor
                 event = self.event("elevator_door_open")
                 yield event
-                for agent in elevator_banks:
-                    agent.stop_waiting(self, self.location, trip.direction)
                 elevator_agent = event.value
 
                 if not elevator_agent.full:
+                    for agent in elevator_banks:
+                        agent.stop_waiting(self, self.location, trip.direction)
                     trip.elevator_arrived_secs = self.env.now
+                    logger.debug("person({}) entering elevator({}) and going to floor({})".format(self.uuid, elevator_agent.uuid, next_event.location.level))
                     elevator_agent.enter(self)
                     elevator_agent.add_stop(next_event.location)
                     break
+                else:
+                    logger.debug("person({}) saw elevator({}) is full, waiting until elevator moves on to call again".format(self.uuid, elevator_agent.uuid))
+                    yield self.event("elevator_moving_on")
+                    logger.debug("person({}) saw elevator({}) moved on, calling elevator again".format(self.uuid, elevator_agent.uuid))
+                    for agent in elevator_banks:
+                        agent.stop_waiting(self, self.location, trip.direction)
 
             # TODO: need to wait for the elevator doors to open
             while elevator_agent.location != next_event.location:
                 yield self.event("elevator_door_open")
+            logger.debug("person({}) eached floor({}) using elevator({})".format(self.uuid, next_event.location.level, elevator_agent.uuid))
             elevator_agent.exit(self)
 
             trip.travel_secs = self.env.now - trip.elevator_arrived_secs

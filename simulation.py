@@ -13,17 +13,16 @@ logger = logging.getLogger(__name__)
 def get_args():
     from argparse import ArgumentParser
     parser = ArgumentParser(description="elevator simulation")
-    parser.add_argument("-v", "--verbose", action="count", help="the logging verbosity (more gives more detail)")
+    parser.add_argument("-v", "--verbose", default=0, action="count", help="the logging verbosity (more gives more detail)")
     parser.add_argument("-i", "--input_file", type=str, help="the input simulation file")
     args = parser.parse_args()
 
-    if args.verbose == 1:
+    if args.verbose >= 1:
         level = logging.DEBUG
     else:
         level = logging.INFO
 
-    logging.basicConfig(format="%(levelname)s %(asctime)s: %(message)s")
-    logger.setLevel(level)
+    logging.basicConfig(format="%(levelname)s %(asctime)s: %(message)s", level=level)
 
     return args
 

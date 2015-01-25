@@ -21,15 +21,26 @@ class ElevatorBank(AgentMixin, ElevatorBankModel):
         For example, the agent controls how quickly the elevator doors open and close, how quickly the elevators can
         move.
         """
-        AgentMixin.__init__(self, sim, events=["elevator_door_open"])
+        AgentMixin.__init__(self, sim, events=["elevator_door_open", "elevator_moving_on"])
         kwargs["elevator_cls"] = Elevator  # elevator class to instantiate on calls to add_elevator
         ElevatorBankModel.__init__(self, sim.building.floors, **kwargs)
 
         self.register_event_callback("elevator_door_open", self.__elevator_door_open)
+        self.register_event_callback("elevator_moving_on", self.__elevator_moving_on)
+
+    def __elevator_moving_on(self, event):
+        elevator = event.value
+        direction = elevator.direction
+        logger.debug("elevator({}) is moving on, notifying all people waiting on floor({}) to go {}".format(elevator.uuid, elevator.location.level, direction))
+        for person in self.waiting_passengers(elevator.location, direction):
+            person.notify_event("elevator_moving_on", elevator)
 
     def __elevator_door_open(self, event):
         elevator = event.value
-        for person in self.waiting_passengers(elevator.location, elevator.next_direction):
+        direction = elevator.next_direction
+        if not direction:
+            direction = 1 if self.waiting_passengers(elevator.location, 1) else -1
+        for person in self.waiting_passengers(elevator.location, direction):
             person.notify_event("elevator_door_open", elevator)
 
     def _create_elevator(self, **kwargs):
@@ -71,33 +82,28 @@ class Elevator(AgentMixin, ElevatorModel):
     def move(self):
         """moves toward the destination until it runs out of stops"""
         while self.stops:
-            logger.debug("elevator at {} must decide to move".format(self.location))
-            if self.full or self.location not in self.stops:
-                logger.debug("elevator is not at one of the stops: {}".format(self.stops))
+            logger.debug("{}: elevator({}) moving {} on {}".format(self.env.now, self.uuid, self.direction, self.location))
+            if self.location not in self.stops:
+                self.__elevator_bank.notify_event("elevator_moving_on", self)
+                if self.direction != self.next_direction:
+                    logger.debug("{}: elevator({}) changed direction {}".format(self.env.now, self.uuid, self.next_direction))
                 self.direction = self.next_direction
 
                 # move to the next floor
-                logger.debug("adv {}".format(self.env.now))
                 yield self.env.timeout(self.elevator_travel_secs)
                 self.location = self.next_location
                 for person in self.passengers:
                     person.notify_event("floor_reached", self.location)
-                logger.debug("done adv {}".format(self.env.now))
             else:
-                logger.debug("elevator is located at a stop location")
+                logger.debug("elevator({}) is located at a stop location".format(self.uuid))
 
             if self.location in self.stops:
                 logger.debug("elevator is at stop {}, opening doors".format(self.location))
-                logger.debug(self.env.now)
                 yield from self.__open_doors()
-                logger.debug(self.env.now)
                 yield from self.wait_for_passengers()
                 yield from self.__close_doors()
 
-
-        logger.debug("elevator at {}, done moving no stops".format(self.location))
-        # become idle, no more stops
-        self.direction = 0
+        self.direction = 0  # idle, no more stops
 
     def __open_doors(self):
         yield self.env.timeout(self.elevator_open_secs)
