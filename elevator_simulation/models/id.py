@@ -13,6 +13,9 @@ class IdentMixin(object):
     def uuid(self):
         return self.__uuid.hex
 
+    def __repr__(self):
+        return "{}(uuid={})".format(self.__class__.__name__,self.uuid)
+
     def __hash__(self):
         return self.__uuid.int
 

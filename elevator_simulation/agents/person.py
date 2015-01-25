@@ -24,10 +24,6 @@ def call_strategy_random(elevator_banks):
 
 class Person(AgentMixin, PersonModel):
     """Behavior for person agent"""
-    person_id = 0
-
-    def __repr__(self):
-        return "<Person(id={})>".format(self.person_id)
 
     def __init__(self, sim, **kwargs):
         """creates a person agent that defines how an individual behaves.
@@ -38,8 +34,6 @@ class Person(AgentMixin, PersonModel):
         AgentMixin.__init__(self, sim, events=["floor_reached", "elevator_door_open"])
         PersonModel.__init__(self, **kwargs)
 
-        self.person_id = Person.person_id
-        Person.person_id += 1
         self.action = self.env.process(self.run())
         self.call_strategy = kwargs.get("elevator_call_strategy", call_strategy_random)
         self.trip_complete = kwargs.get("trip_complete", lambda obj: print(to_csv(obj)))
