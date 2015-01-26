@@ -8,5 +8,7 @@ function generate_data_and_plots {
     python generate_results.py -i "${OUTPUT_FILE}" --file_suffix "_${NAME}"
 }
 
+
+mkdir -p sim_results
 generate_data_and_plots "random"
 generate_data_and_plots "all"
