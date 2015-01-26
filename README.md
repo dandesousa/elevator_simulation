@@ -1,10 +1,10 @@
 # Elevator Simulation
 
-## About
+## About / Motivations
 
-This is an small simulation project intended to model an elevator system in an office building. It was originally created to settle a question about elevator efficency during a set of upgrades at the office. The basic question: is it better to call multiple elevator banks or randomly select one? This project was completely to the extent needed to satisfy the argument and subsequent inquiries. 
+This is an small simulation project intended to model an elevator system in an office building. It was originally created to settle a question about elevator efficency during a set of upgrades at the office. The basic question: when multiple independent elevator banks exist, is it better to call multiple elevator banks or randomly select one? This project was completed to the extent needed to satisfy the original and subsequent inquiries. 
 
-Anyone is free to update this and contribute back.
+This simulation is freely available to anyone. Contributions are appreciated but not required.
 
 ## Requirements
 
