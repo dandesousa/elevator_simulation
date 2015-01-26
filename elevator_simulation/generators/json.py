@@ -30,6 +30,7 @@ def write_simulation(simulation, fh):
         person_dict = dict()
         data["people"].append(person_dict)
         person_dict["uuid"] = person.uuid
+        person_dict["elevator_call_strategy"] = person.call_strategy.__name__
         person_dict["schedule"] = []
         for event in person.schedule.events:
             event_dict = dict()

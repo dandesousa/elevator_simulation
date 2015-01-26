@@ -31,6 +31,7 @@ def get_args():
     parser.add_argument("--lunch_on_floor", default=[], required=True, action="append", type=int, help="adds to the list of floors where people eat lunch (default: %(default)s)")
     parser.add_argument("--breaks_per_day", default=3, type=int, help="number of breaks for all people during the day (default: %(default)s)")
     parser.add_argument("--break_length_mins", default=15, type=int, help="the length of time taken for breaks for all people in minutes (default: %(default)s)")
+    parser.add_argument("--call_strategy", default="call_strategy_random", choices=["call_strategy_random", "call_strategy_all"], help="the call strategy to be employed by the individuals in the simulation (default: %(default)s)")
     args = parser.parse_args()
 
     if args.verbose == 1:
@@ -69,7 +70,7 @@ def main():
 
     # generate people
     for i in range(args.people):
-        p = Person(simulation)
+        p = Person(simulation, call_strategy=args.call_strategy)
         simulation.people.append(p)
 
         # setup schedule for the following events:

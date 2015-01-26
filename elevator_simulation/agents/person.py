@@ -35,7 +35,7 @@ class Person(AgentMixin, PersonModel):
         PersonModel.__init__(self, **kwargs)
 
         self.action = self.env.process(self.run())
-        self.call_strategy = kwargs.get("elevator_call_strategy", call_strategy_random)
+        self.call_strategy = globals()[kwargs.get("elevator_call_strategy", "call_strategy_random")]
         self.trip_complete = kwargs.get("trip_complete", lambda obj: print(to_csv(obj)))
 
     def run(self):
