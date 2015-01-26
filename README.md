@@ -23,6 +23,14 @@ The project consists of a number of tools and modules, including:
 
 If you want to generate data, you can run `generate_simulation.py` to create a json file modeling a simulation. `generate_data.sh` provides an example of running the simulation scripts and generating plots. It should work out of the box with the provided simulation files.
 
+## Sample Plots
+
+![](data/travel_time_point_random.png)
+*Time Spent In Traveling In Elevators*
+
+![](data/travel_time_point_by_distance_random.png)
+_Time Spent In Traveling In Elevators By Distance Traveled In Floors_
+
 ## License
 
 `elevator_simulation` is licensed under CC0, or public domain in all jursidictions that permit it.
