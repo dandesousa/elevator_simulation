@@ -8,16 +8,16 @@ Anyone is free to update this and contribute back.
 
 ## Requirements
 
-    - Python 3.4+
-    - Everything in requirements.txt (simpy, pandas, ggplot and more)
+* Python 3.4+
+* Everything in requirements.txt (simpy, pandas, ggplot and more)
 
 ## What's Included
 
 The project consists of a number of tools and modules, including:
 
-    - `elevator_simulation` a reasonably documented python package for creating a representation of a simulation environment in `simpy`
-    - scripts to generate simulation json files, run the simulation and generate trip data output, and plot generation scripts using ggplot and pandas
-    - scripts for running unit tests, generating data from input simulations that are generated apriori
+* `elevator_simulation` a reasonably documented python package for creating a representation of a simulation environment in `simpy`
+* scripts to generate simulation json files, run the simulation and generate trip data output, and plot generation scripts using ggplot and pandas
+* scripts for running unit tests, generating data from input simulations that are generated apriori
 
 ## How Run
 
