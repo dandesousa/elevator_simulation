@@ -34,19 +34,21 @@ def get_args():
 def main():
     args = get_args()
     df = pd.read_csv(args.input_file)
+    travel_secs_series = df['travel_secs']
+    median = travel_secs_series.median()
 
     # travel point plot
-    p = ggplot(df, aes(x='elevator_called_secs', y='travel_secs')) + geom_point() + xlab('seconds since midnight') + ylab('travel time (seconds)') + ggtitle("All Elevator Trips")
+    p = ggplot(df, aes(x='elevator_called_secs', y='travel_secs', color='distance')) + geom_point() + xlab('seconds since midnight') + ylab('travel time (seconds)') + ggtitle("All Elevator Trips (median = {} secs)".format(median))
+    p = p + geom_hline(yintercept=median, color='black')
     pn = os.path.join(args.output_dir, "travel_time_point{}.png".format(args.file_suffix))
     logger.info("generating plot {}".format(pn))
-    ggsave(p, pn)
-
+    ggsave(p, pn, height=10, width=15)
 
     # travel point plot by distance
-    p = ggplot(df, aes(x='elevator_called_secs', y='travel_secs')) + geom_point() + xlab('seconds since midnight') + ylab('travel time (seconds)') + facet_wrap('distance') + ggtitle("All Elevator Trips")
+    p = ggplot(df, aes(x='elevator_called_secs', y='travel_secs', color='distance')) + geom_point() + xlab('seconds since midnight') + ylab('travel time (seconds)') + facet_wrap('distance') + ggtitle("All Elevator Trips")
     pn = os.path.join(args.output_dir, "travel_time_point_by_distance{}.png".format(args.file_suffix))
     logger.info("generating plot {}".format(pn))
-    ggsave(p, pn)
+    ggsave(p, pn, height=10, width=15)
 
 
 
